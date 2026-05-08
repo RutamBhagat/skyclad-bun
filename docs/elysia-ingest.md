@@ -399,11 +399,7 @@ papers
   authors jsonb not null
   summary text
   source_url text not null
-  metadata_text text not null          -- title + authors + summary
   metadata_embedding vector(<dimensions>)
-  abs_url text
-  published_at timestamp
-  updated_at timestamp
   ingested_at timestamp
 
 paper_docs
@@ -483,8 +479,8 @@ Use Drizzle inserts with `onConflictDoNothing` or `onConflictDoUpdate` for
 idempotency. A repeated successful ingest for the same version should not create
 duplicate docs.
 
-For paper resolution, build and embed `papers.metadata_text` during ingestion.
-Keep the metadata text limited to the selected candidate inputs:
+For paper resolution, build and embed paper metadata during ingestion. Keep the
+metadata text limited to the selected candidate inputs:
 
 ```text
 Title: Attention Is All You Need
@@ -492,7 +488,8 @@ Authors: Ashish Vaswani, Noam Shazeer, ...
 Summary: The dominant sequence transduction models...
 ```
 
-Store both fields:
+Store only the embedding. The source text is derived from `title`, `authors`,
+and `summary`, so it does not need its own column:
 
 ```ts
 const metadataText = [
@@ -504,13 +501,14 @@ const metadataText = [
 const metadataEmbedding = await embed(metadataText);
 ```
 
-That embedding helps `resolve_paper_id` find the correct paper namespace. Section
-embeddings in `paper_docs` are for `query_paper_docs` after the namespace is
-already known.
+That embedding helps `resolve_paper_id` find the correct paper namespace.
+Section embeddings in `paper_docs` are for `query_paper_docs` after the
+namespace is already known.
 
-Drizzle can define the `vector` column and HNSW index, but the `tsvector`
-generated column may be clearer as SQL in a migration. Keep that explicit rather
-than hiding it behind a helper.
+Drizzle can define the `vector` columns and the generated `tsvector` column
+directly in the schema. Keep `create extension if not exists vector` explicit in
+the SQL migration because Drizzle does not enable database extensions from the
+table schema.
 
 ---
 

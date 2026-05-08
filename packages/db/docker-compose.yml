@@ -2,7 +2,7 @@ name: skyclad-bun
 
 services:
   postgres:
-    image: postgres
+    image: pgvector/pgvector:0.8.2-pg17-trixie
     container_name: skyclad-bun-postgres
     environment:
       POSTGRES_DB: skyclad-bun
