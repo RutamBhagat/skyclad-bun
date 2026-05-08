@@ -6,3 +6,4 @@ https://arxiv.org/html/1706.03762v7
 - for arXiv, a PDF-first pipeline is the wrong default. The best signal is usually the public TeX source; PDF/OCR parsers should be fallbacks, not the primary ingestion path
 - arXiv TeX source → structured XML/HTML+MathML via LaTeXML → custom structural chunker → hybrid text + formula retrieval
 - you need bash commands to properly extract the paper
+- needed db sql migration change to prevent db push issue due to pgvector initial setup

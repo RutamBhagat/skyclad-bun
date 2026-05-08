@@ -55,14 +55,8 @@ export const paperDocs = pgTable(
     ),
   },
   (table) => [
-    uniqueIndex("paper_docs_paper_doc_index_unique").on(
-      table.paperId,
-      table.docIndex,
-    ),
-    uniqueIndex("paper_docs_paper_source_file_unique").on(
-      table.paperId,
-      table.sourceFile,
-    ),
+    uniqueIndex("paper_docs_paper_doc_index_unique").on(table.paperId, table.docIndex),
+    uniqueIndex("paper_docs_paper_source_file_unique").on(table.paperId, table.sourceFile),
     index("paper_docs_paper_order_idx").on(table.paperId, table.docIndex),
     index("paper_docs_paper_kind_idx").on(table.paperId, table.sectionKind),
     index("paper_docs_search_idx").using("gin", table.searchText),
