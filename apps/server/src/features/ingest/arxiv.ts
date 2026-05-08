@@ -2,8 +2,11 @@ import { XMLParser } from "fast-xml-parser";
 
 type ArxivCandidate = {
   arxiv_id: string;
+  paper_id: string;
   title: string;
   authors: string[];
+  summary: string;
+  source_url: string;
 };
 
 export function parseArxivCandidates(rawResponse: string): ArxivCandidate[] {
@@ -18,6 +21,7 @@ export function parseArxivCandidates(rawResponse: string): ArxivCandidate[] {
       entry?: Array<{
         id: string;
         title: string;
+        summary: string;
         author: Array<{ name: string }>;
       }>;
     };
@@ -34,8 +38,11 @@ export function parseArxivCandidates(rawResponse: string): ArxivCandidate[] {
 
     return {
       arxiv_id: arxivId,
+      paper_id: `/arxiv/${arxivId}`,
       title: entry.title,
       authors,
+      summary: entry.summary,
+      source_url: `https://arxiv.org/src/${arxivId}`,
     };
   });
 }
