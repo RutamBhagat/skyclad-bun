@@ -1,5 +1,6 @@
 import { Elysia, t } from "elysia";
 import { parseArxivCandidates } from "./arxiv";
+import { ingestPaperSource } from "./source-ingest";
 
 export const ingestRoutes = new Elysia({ prefix: "/api/ingest" }).post(
   "/resolve_ingest_target",
@@ -22,6 +23,19 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" }).post(
     body: t.Object({
       paperName: t.String(),
       query: t.String(),
+    }),
+  },
+).post(
+  "/ingest_paper_source",
+  async ({ body }) => ingestPaperSource(body),
+  {
+    body: t.Object({
+      arxivId: t.String(),
+      paperId: t.String(),
+      title: t.String(),
+      authors: t.Array(t.String()),
+      summary: t.String(),
+      sourceUrl: t.String(),
     }),
   },
 );

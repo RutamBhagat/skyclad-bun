@@ -47,5 +47,6 @@ coverage
 # Misc
 *.tgz
 .cache
+.ingest/
 tmp
 temp
