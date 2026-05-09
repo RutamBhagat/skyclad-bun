@@ -1,6 +1,7 @@
 import { $ } from "bun";
 import { env } from "@skyclad-bun/env/server";
 import { marked } from "marked";
+import slugify from "slugify";
 
 type IngestPaperSourceInput = {
   arxivId: string;
@@ -21,10 +22,28 @@ type SectionDoc = {
   sourceFile: string;
 };
 
+type SectionDraft = Omit<SectionDoc, "docIndex" | "sourceFile"> & {
+  parts: string[];
+};
+
 const mainTexNames = new Set(["main.tex", "paper.tex", "ms.tex", "article.tex", "arxiv.tex"]);
 const ingestTools = ["tar", "latexpand", "pandoc"];
-const embeddingModel = "gemini-embedding-2";
+const embeddingModel = "gemini-embedding-2-preview";
 const embeddingDimensions = 1536;
+const minSectionBodyCharacters = 120;
+
+export async function ensureIngestTools() {
+  const missing: string[] = [];
+
+  for (const tool of ingestTools) {
+    const resolved = Bun.which(tool);
+    if (!resolved) {
+      missing.push(tool);
+    }
+  }
+
+  return missing;
+}
 
 export async function findMainTexFile(sourceDir: string) {
   const texFiles = (await $`find ${sourceDir} -type f -name "*.tex"`.text())
@@ -65,17 +84,28 @@ export function splitMarkdown(markdown: string): SectionDoc[] {
   const tokens = marked.lexer(markdown, { gfm: true });
   const sections: SectionDoc[] = [];
   // this stack turns nested headings into a citation-ready section path
-  const path: string[] = [];
-  let current: (SectionDoc & { parts: string[] }) | null = null;
+  const headingStack: Array<{ depth: number; title: string }> = [];
+  let current: SectionDraft | null = null;
 
   const flush = () => {
     if (!current) return;
 
     // close the previous section exactly as pandoc emitted it
     const sectionMarkdown = current.parts.join("").trim();
-    if (sectionMarkdown) {
-      sections.push({ ...current, markdown: sectionMarkdown });
-    }
+    const bodyMarkdown = current.parts.slice(1).join("").trim();
+    if (bodyMarkdown.length < minSectionBodyCharacters) return;
+
+    const docIndex = sections.length;
+    sections.push({
+      ...current,
+      docIndex,
+      markdown: sectionMarkdown,
+      // Keep ordering stable while making generated files readable during debugging.
+      sourceFile: `${docIndex.toString().padStart(3, "0")}-${slugify(
+        current.sectionTitle.replace(/\{#[^}]+\}/g, ""),
+        { lower: true, strict: true },
+      )}.md`,
+    });
   };
 
   for (const token of tokens) {
@@ -87,19 +117,18 @@ export function splitMarkdown(markdown: string): SectionDoc[] {
 
     flush();
 
-    // a heading starts a new section and resets the path at its depth
-    path[token.depth - 1] = token.text;
-    path.length = token.depth;
+    // A depth stack handles skipped heading levels without adding undefined path entries.
+    while (headingStack.length > 0 && headingStack[headingStack.length - 1]!.depth >= token.depth) {
+      headingStack.pop();
+    }
+    headingStack.push({ depth: token.depth, title: token.text });
 
-    const docIndex = sections.length;
     current = {
-      docIndex,
       sectionTitle: token.text,
-      sectionPath: [...path],
+      sectionPath: headingStack.map((heading) => heading.title),
       sectionLevel: token.depth,
       sectionKind: getSectionKind(token.text),
       markdown: "",
-      sourceFile: `${docIndex.toString().padStart(3, "0")}.md`,
       parts: [token.raw],
     };
   }
@@ -109,32 +138,6 @@ export function splitMarkdown(markdown: string): SectionDoc[] {
 
   // some converted papers have no markdown headings; keep them queryable as abstract
   return [buildSection(0, "Abstract", ["Abstract"], 1, `# Abstract\n\n${markdown.trim()}`)];
-}
-
-function buildSection(
-  docIndex: number,
-  title: string,
-  path: string[],
-  level: number,
-  markdown: string,
-): SectionDoc {
-  return {
-    docIndex,
-    sectionTitle: title,
-    sectionPath: path,
-    sectionLevel: level,
-    sectionKind: getSectionKind(title),
-    markdown,
-    sourceFile: `${docIndex.toString().padStart(3, "0")}.md`,
-  };
-}
-
-function getSectionKind(title: string): SectionDoc["sectionKind"] {
-  const normalized = title.toLowerCase();
-  if (normalized === "abstract") return "abstract";
-  if (normalized === "references" || normalized === "bibliography") return "references";
-  if (normalized.startsWith("appendix")) return "appendix";
-  return "main";
 }
 
 export async function writeSectionFiles(
@@ -188,15 +191,32 @@ export async function embed(input: string) {
   return body.embedding.values;
 }
 
-export async function ensureIngestTools() {
-  const missing: string[] = [];
+function buildSection(
+  docIndex: number,
+  title: string,
+  path: string[],
+  level: number,
+  markdown: string,
+): SectionDoc {
+  return {
+    docIndex,
+    sectionTitle: title,
+    sectionPath: path,
+    sectionLevel: level,
+    sectionKind: getSectionKind(title),
+    markdown,
+    // Keep the fallback filename shape consistent with normal section documents.
+    sourceFile: `${docIndex.toString().padStart(3, "0")}-${slugify(
+      title.replace(/\{#[^}]+\}/g, ""),
+      { lower: true, strict: true },
+    )}.md`,
+  };
+}
 
-  for (const tool of ingestTools) {
-    const resolved = Bun.which(tool);
-    if (!resolved) {
-      missing.push(tool);
-    }
-  }
-
-  return missing;
+function getSectionKind(title: string): SectionDoc["sectionKind"] {
+  const normalized = title.toLowerCase();
+  if (normalized === "abstract") return "abstract";
+  if (normalized === "references" || normalized === "bibliography") return "references";
+  if (normalized.startsWith("appendix")) return "appendix";
+  return "main";
 }
