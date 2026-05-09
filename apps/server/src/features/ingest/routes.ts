@@ -99,8 +99,8 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       try {
         // build the source workspace from the caller-provided arxiv source archive
         await $`mkdir -p ${sourceDir}`;
-        // const sourceResponse = await fetch(body.sourceUrl);
-        // await Bun.write(sourceArchive, sourceResponse);
+        const sourceResponse = await fetch(body.sourceUrl);
+        await Bun.write(sourceArchive, sourceResponse);
         await $`tar -xzf ${sourceArchive} -C ${sourceDir}`;
 
         // flatten included tex files so pandoc sees one complete latex document
