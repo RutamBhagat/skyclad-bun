@@ -119,7 +119,7 @@
         },
         "embedding": {
           "name": "embedding",
-          "type": "vector(1536)",
+          "type": "vector(3072)",
           "primaryKey": false,
           "notNull": false
         },
@@ -294,7 +294,7 @@
         },
         "metadata_embedding": {
           "name": "metadata_embedding",
-          "type": "vector(1536)",
+          "type": "vector(3072)",
           "primaryKey": false,
           "notNull": false
         },

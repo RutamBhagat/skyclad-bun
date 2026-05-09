@@ -20,7 +20,7 @@ CREATE TABLE "paper_docs" (
 	"section_kind" text NOT NULL,
 	"markdown" text NOT NULL,
 	"source_file" text NOT NULL,
-	"embedding" vector(1536),
+	"embedding" vector(3072),
 	"search_text" "tsvector" GENERATED ALWAYS AS (to_tsvector('english', coalesce("paper_docs"."section_title", '') || ' ' || coalesce("paper_docs"."markdown", ''))) STORED
 );
 --> statement-breakpoint
@@ -31,7 +31,7 @@ CREATE TABLE "papers" (
 	"authors" jsonb NOT NULL,
 	"summary" text,
 	"source_url" text NOT NULL,
-	"metadata_embedding" vector(1536),
+	"metadata_embedding" vector(3072),
 	"ingested_at" timestamp,
 	CONSTRAINT "papers_arxiv_id_unique" UNIQUE("arxiv_id")
 );

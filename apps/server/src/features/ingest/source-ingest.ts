@@ -1,4 +1,5 @@
 import { $ } from "bun";
+import { embeddingDimensions } from "@skyclad-bun/db/schema/index";
 import { env } from "@skyclad-bun/env/server";
 import { marked } from "marked";
 import slugify from "slugify";
@@ -28,8 +29,7 @@ type SectionDraft = Omit<SectionDoc, "docIndex" | "sourceFile"> & {
 
 const mainTexNames = new Set(["main.tex", "paper.tex", "ms.tex", "article.tex", "arxiv.tex"]);
 const ingestTools = ["tar", "latexpand", "pandoc"];
-const embeddingModel = "gemini-embedding-2-preview";
-const embeddingDimensions = 1536;
+const embeddingModel = "gemini-embedding-2";
 const minSectionBodyCharacters = 120;
 
 export async function ensureIngestTools() {
@@ -176,7 +176,7 @@ export async function embed(input: string) {
       },
       body: JSON.stringify({
         model: `models/${embeddingModel}`,
-        // the db schema is vector(1536), so request that size directly from gemini
+        // the db schema fixes the vector size, so request that size directly from gemini
         output_dimensionality: embeddingDimensions,
         content: { parts: [{ text: input }] },
       }),

@@ -11,7 +11,7 @@ import {
   vector,
 } from "drizzle-orm/pg-core";
 
-export const embeddingDimensions = 1536;
+export const embeddingDimensions = 3072;
 
 const tsvector = customType<{ data: string }>({
   dataType() {
