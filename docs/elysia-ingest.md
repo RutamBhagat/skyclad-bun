@@ -56,13 +56,13 @@ fully normalized arXiv identifier contract.
 ### Signature
 
 ```ts
-resolve_ingest_target({ paperName: string, query: string })
+resolve_ingest_target({ paperName: string })
 ```
 
 ### Behavior
 
 1. Build the arXiv search query:
-   `ti:"<paperName>" AND all:"<query>"`.
+   `ti:"<paperName>"`.
 2. Call `https://export.arxiv.org/api/query` with `start=0`, `max_results=3`,
    `sortBy=relevance`, and `sortOrder=descending`.
 3. Parse the Atom XML response with `parseArxivCandidates`.
@@ -86,7 +86,6 @@ type ResolveIngestTargetResult = {
   result: ArxivCandidate[];
   args: {
     paperName: string;
-    query: string;
   };
 };
 ```

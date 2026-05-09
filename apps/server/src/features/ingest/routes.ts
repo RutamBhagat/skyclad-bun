@@ -16,7 +16,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
   .post(
     "/resolve_ingest_target",
     async ({ body }) => {
-      const searchQuery = `ti:"${body.paperName}" AND all:"${body.query}"`;
+      const searchQuery = `ti:"${body.paperName}"`;
       const apiUrl = `https://export.arxiv.org/api/query?search_query=${encodeURIComponent(searchQuery)}&start=0&max_results=3&sortBy=relevance&sortOrder=descending`;
       const response = await fetch(apiUrl);
 
@@ -33,7 +33,6 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
     {
       body: t.Object({
         paperName: t.String(),
-        query: t.String(),
       }),
     },
   )

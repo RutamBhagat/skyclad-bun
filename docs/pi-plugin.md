@@ -23,7 +23,7 @@ Pi does not treat MCP as a core built-in feature. Keep this as a direct extensio
 
 Expose exactly four Pi tools from your extension:
 
-- `resolve_ingest_target({ paperName, query })`
+- `resolve_ingest_target({ paperName })`
 - `ingest_paper_html({ htmlUrl })`
 - `resolve_paper_id({ paperName, query })`
 - `query_paper_docs({ paperId, query })`
@@ -49,6 +49,7 @@ Path: `.pi/extensions/paper-rag/index.ts`
 import type { ExtensionAPI } from "@earendil-works/pi-coding-agent";
 import { Type } from "typebox";
 
+type ResolveIngestTargetInput = { paperName: string };
 type ResolveInput = { paperName: string; query: string };
 type QueryInput = { paperId: string; query: string };
 type IngestInput = { htmlUrl: string };
@@ -83,9 +84,8 @@ export default function setup(pi: ExtensionAPI) {
       "Resolve title/id/url to a canonical arXiv paper target for HTML ingestion.",
     parameters: Type.Object({
       paperName: Type.String(),
-      query: Type.String(),
     }),
-    async execute(_toolCallId, params: ResolveInput) {
+    async execute(_toolCallId, params: ResolveIngestTargetInput) {
       const result = await callBackend<unknown>("/resolve_ingest_target", params);
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],

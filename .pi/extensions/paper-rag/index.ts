@@ -5,7 +5,6 @@ import { Type } from "typebox";
 
 type ResolveIngestTargetInput = {
   paperName: string;
-  query: string;
 };
 
 type IngestPaperSourceInput = {
@@ -42,7 +41,6 @@ export default function setup(pi: ExtensionAPI) {
       "Resolve a paper reference to an arXiv source ingestion target. NOTE: Do not retry if you encounter 429 status code",
     parameters: Type.Object({
       paperName: Type.String(),
-      query: Type.String(),
     }),
     //@ts-ignore
     async execute(_toolCallId, params: ResolveIngestTargetInput) {
