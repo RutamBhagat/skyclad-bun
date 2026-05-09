@@ -7,6 +7,11 @@ type ResolveIngestTargetInput = {
   paperName: string;
 };
 
+type ResolvePaperIdInput = {
+  paperName: string;
+  query: string;
+};
+
 type IngestPaperSourceInput = {
   arxivId: string;
   paperId: string;
@@ -74,6 +79,23 @@ export default function setup(pi: ExtensionAPI) {
         paperId: `/arxiv/${arxivId}`,
         sourceUrl: `https://arxiv.org/src/${arxivId}`,
       });
+      return {
+        content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
+        details: {},
+      };
+    },
+  });
+  pi.registerTool({
+    name: "resolve_paper_id",
+    label: "Resolve Paper ID",
+    description: "Resolve a paper reference to a canonical paperId for retrieval.",
+    parameters: Type.Object({
+      paperName: Type.String(),
+      query: Type.String(),
+    }),
+    //@ts-ignore
+    async execute(_toolCallId, params: ResolvePaperIdInput) {
+      const result = await callBackend<unknown>("/api/retrieval/resolve_paper_id", params);
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         details: {},

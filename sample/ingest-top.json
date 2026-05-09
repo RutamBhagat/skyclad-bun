@@ -187,12 +187,7 @@
     "arxiv_id": "2203.14465",
     "paper_id": "/arxiv/2203.14465",
     "title": "STaR: Bootstrapping Reasoning With Reasoning",
-    "authors": [
-      "Eric Zelikman",
-      "Yuhuai Wu",
-      "Jesse Mu",
-      "Noah D. Goodman"
-    ],
+    "authors": ["Eric Zelikman", "Yuhuai Wu", "Jesse Mu", "Noah D. Goodman"],
     "summary": "Generating step-by-step \"chain-of-thought\" rationales improves language model performance on complex reasoning tasks like mathematics or commonsense question-answering. However, inducing language model rationale generation currently requires either constructing massive rationale datasets or sacrificing accuracy by using only few-shot inference. We propose a technique to iteratively leverage a small number of rationale examples and a large dataset without rationales, to bootstrap the ability to perform successively more complex reasoning. This technique, the \"Self-Taught Reasoner\" (STaR), relies on a simple loop: generate rationales to answer many questions, prompted with a few rationale examples; if the generated answers are wrong, try again to generate a rationale given the correct answer; fine-tune on all the rationales that ultimately yielded correct answers; repeat. We show that STaR significantly improves performance on multiple datasets compared to a model fine-tuned to directly predict final answers, and performs comparably to fine-tuning a 30$\\times$ larger state-of-the-art language model on CommensenseQA. Thus, STaR lets a model improve itself by learning from its own generated reasoning.",
     "source_url": "https://arxiv.org/src/2203.14465"
   },
@@ -319,13 +314,7 @@
     "arxiv_id": "2205.14135",
     "paper_id": "/arxiv/2205.14135",
     "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
-    "authors": [
-      "Tri Dao",
-      "Daniel Y. Fu",
-      "Stefano Ermon",
-      "Atri Rudra",
-      "Christopher Ré"
-    ],
+    "authors": ["Tri Dao", "Daniel Y. Fu", "Stefano Ermon", "Atri Rudra", "Christopher Ré"],
     "summary": "Transformers are slow and memory-hungry on long sequences, since the time and memory complexity of self-attention are quadratic in sequence length. Approximate attention methods have attempted to address this problem by trading off model quality to reduce the compute complexity, but often do not achieve wall-clock speedup. We argue that a missing principle is making attention algorithms IO-aware -- accounting for reads and writes between levels of GPU memory. We propose FlashAttention, an IO-aware exact attention algorithm that uses tiling to reduce the number of memory reads/writes between GPU high bandwidth memory (HBM) and GPU on-chip SRAM. We analyze the IO complexity of FlashAttention, showing that it requires fewer HBM accesses than standard attention, and is optimal for a range of SRAM sizes. We also extend FlashAttention to block-sparse attention, yielding an approximate attention algorithm that is faster than any existing approximate attention method. FlashAttention trains Transformers faster than existing baselines: 15% end-to-end wall-clock speedup on BERT-large (seq. length 512) compared to the MLPerf 1.1 training speed record, 3$\\times$ speedup on GPT-2 (seq. length 1K), and 2.4$\\times$ speedup on long-range arena (seq. length 1K-4K). FlashAttention and block-sparse FlashAttention enable longer context in Transformers, yielding higher quality models (0.7 better perplexity on GPT-2 and 6.4 points of lift on long-document classification) and entirely new capabilities: the first Transformers to achieve better-than-chance performance on the Path-X challenge (seq. length 16K, 61.4% accuracy) and Path-256 (seq. length 64K, 63.1% accuracy).",
     "source_url": "https://arxiv.org/src/2205.14135"
   },
@@ -391,12 +380,7 @@
     "arxiv_id": "2305.15334",
     "paper_id": "/arxiv/2305.15334",
     "title": "Gorilla: Large Language Model Connected with Massive APIs",
-    "authors": [
-      "Shishir G. Patil",
-      "Tianjun Zhang",
-      "Xin Wang",
-      "Joseph E. Gonzalez"
-    ],
+    "authors": ["Shishir G. Patil", "Tianjun Zhang", "Xin Wang", "Joseph E. Gonzalez"],
     "summary": "Large Language Models (LLMs) have seen an impressive wave of advances recently, with models now excelling in a variety of tasks, such as mathematical reasoning and program synthesis. However, their potential to effectively use tools via API calls remains unfulfilled. This is a challenging task even for today's state-of-the-art LLMs such as GPT-4, largely due to their inability to generate accurate input arguments and their tendency to hallucinate the wrong usage of an API call. We release Gorilla, a finetuned LLaMA-based model that surpasses the performance of GPT-4 on writing API calls. When combined with a document retriever, Gorilla demonstrates a strong capability to adapt to test-time document changes, enabling flexible user updates or version changes. It also substantially mitigates the issue of hallucination, commonly encountered when prompting LLMs directly. To evaluate the model's ability, we introduce APIBench, a comprehensive dataset consisting of HuggingFace, TorchHub, and TensorHub APIs. The successful integration of the retrieval system with Gorilla demonstrates the potential for LLMs to use tools more accurately, keep up with frequently updated documentation, and consequently increase the reliability and applicability of their outputs. Gorilla's code, model, data, and demo are available at this https URL.",
     "source_url": "https://arxiv.org/src/2305.15334"
   },
@@ -514,10 +498,7 @@
     "arxiv_id": "2312.00752",
     "paper_id": "/arxiv/2312.00752",
     "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
-    "authors": [
-      "Albert Gu",
-      "Tri Dao"
-    ],
+    "authors": ["Albert Gu", "Tri Dao"],
     "summary": "Foundation models, now powering most of the exciting applications in deep learning, are almost universally based on the Transformer architecture and its core attention module. Many subquadratic-time architectures such as linear attention, gated convolution and recurrent models, and structured state space models (SSMs) have been developed to address Transformers' computational inefficiency on long sequences, but they have not performed as well as attention on important modalities such as language. We identify that a key weakness of such models is their inability to perform content-based reasoning, and make several improvements. First, simply letting the SSM parameters be functions of the input addresses their weakness with discrete modalities, allowing the model to selectively propagate or forget information along the sequence length dimension depending on the current token. Second, even though this change prevents the use of efficient convolutions, we design a hardware-aware parallel algorithm in recurrent mode. We integrate these selective SSMs into a simplified end-to-end neural network architecture without attention or even MLP blocks (Mamba). Mamba enjoys fast inference (5$\\times$ higher throughput than Transformers) and linear scaling in sequence length, and its performance improves on real data up to million-length sequences. As a general sequence model backbone, Mamba achieves state-of-the-art performance across several modalities such as language, audio, and genomics. On language modeling, our Mamba-3B model outperforms Transformers of the same size and matches Transformers twice its size, both in pretraining and downstream evaluation.",
     "source_url": "https://arxiv.org/src/2312.00752"
   },
@@ -557,9 +538,7 @@
     "arxiv_id": "2501.12948",
     "paper_id": "/arxiv/2501.12948",
     "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
-    "authors": [
-      "DeepSeek-AI"
-    ],
+    "authors": ["DeepSeek-AI"],
     "summary": "General reasoning represents a long-standing and formidable challenge in artificial intelligence. Recent breakthroughs, exemplified by large language models (LLMs) and chain-of-thought prompting, have achieved considerable success on foundational reasoning tasks. However, this success is heavily contingent upon extensive human-annotated demonstrations, and models' capabilities are still insufficient for more complex problems. Here we show that the reasoning abilities of LLMs can be incentivized through pure reinforcement learning (RL), obviating the need for human-labeled reasoning trajectories. The proposed RL framework facilitates the emergent development of advanced reasoning patterns, such as self-reflection, verification, and dynamic strategy adaptation. Consequently, the trained model achieves superior performance on verifiable tasks such as mathematics, coding competitions, and STEM fields, surpassing its counterparts trained via conventional supervised learning on human demonstrations. Moreover, the emergent reasoning patterns exhibited by these large-scale models can be systematically harnessed to guide and enhance the reasoning capabilities of smaller models.",
     "source_url": "https://arxiv.org/src/2501.12948"
   },
@@ -727,12 +706,7 @@
     "arxiv_id": "2503.23278",
     "paper_id": "/arxiv/2503.23278",
     "title": "Model Context Protocol (MCP): Landscape, Security Threats, and Future Research Directions",
-    "authors": [
-      "Xinyi Hou",
-      "Yanjie Zhao",
-      "Shenao Wang",
-      "Haoyu Wang"
-    ],
+    "authors": ["Xinyi Hou", "Yanjie Zhao", "Shenao Wang", "Haoyu Wang"],
     "summary": "The Model Context Protocol (MCP) is an emerging open standard that defines a unified, bi-directional communication and dynamic discovery protocol between AI models and external tools or resources, aiming to enhance interoperability and reduce fragmentation across diverse systems. This paper presents a systematic study of MCP from both architectural and security perspectives. We first define the full lifecycle of an MCP server, comprising four phases (creation, deployment, operation, and maintenance), further decomposed into 16 key activities that capture its functional evolution. Building on this lifecycle analysis, we construct a comprehensive threat taxonomy that categorizes security and privacy risks across four major attacker types: malicious developers, external attackers, malicious users, and security flaws, encompassing 16 distinct threat scenarios. To validate these risks, we develop and analyze real-world case studies that demonstrate concrete attack surfaces and vulnerability manifestations within MCP implementations. Based on these findings, the paper proposes a set of fine-grained, actionable security safeguards tailored to each lifecycle phase and threat category, offering practical guidance for secure MCP adoption. We also analyze the current MCP landscape, covering industry adoption, integration patterns, and supporting tools, to identify its technological strengths as well as existing limitations that constrain broader deployment. Finally, we outline future research and development directions aimed at strengthening MCP's standardization, trust boundaries, and sustainable growth within the evolving ecosystem of tool-augmented AI systems.",
     "source_url": "https://arxiv.org/src/2503.23278"
   },
@@ -740,10 +714,7 @@
     "arxiv_id": "2504.03767",
     "paper_id": "/arxiv/2504.03767",
     "title": "MCP Safety Audit: LLMs with the Model Context Protocol Allow Major Security Exploits",
-    "authors": [
-      "Brandon Radosevich",
-      "John Halloran"
-    ],
+    "authors": ["Brandon Radosevich", "John Halloran"],
     "summary": "To reduce development overhead and enable seamless integration between potential components comprising any given generative AI application, the Model Context Protocol (MCP) (Anthropic, 2024) has recently been released and subsequently widely adopted. The MCP is an open protocol that standardizes API calls to large language models (LLMs), data sources, and agentic tools. By connecting multiple MCP servers, each defined with a set of tools, resources, and prompts, users are able to define automated workflows fully driven by LLMs. However, we show that the current MCP design carries a wide range of security risks for end users. In particular, we demonstrate that industry-leading LLMs may be coerced into using MCP tools to compromise an AI developer's system through various attacks, such as malicious code execution, remote access control, and credential theft. To proactively mitigate these and related attacks, we introduce a safety auditing tool, MCPSafetyScanner, the first agentic tool to assess the security of an arbitrary MCP server. MCPScanner uses several agents to (a) automatically determine adversarial samples given an MCP server's tools and resources; (b) search for related vulnerabilities and remediations based on those samples; and (c) generate a security report detailing all findings. Our work highlights serious security issues with general-purpose agentic workflows while also providing a proactive tool to audit MCP server safety and address detected vulnerabilities before deployment.",
     "source_url": "https://arxiv.org/src/2504.03767"
   },
@@ -770,13 +741,7 @@
     "arxiv_id": "2508.12566",
     "paper_id": "/arxiv/2508.12566",
     "title": "Help or Hurdle? Rethinking Model Context Protocol-Augmented Large Language Models",
-    "authors": [
-      "Wei Song",
-      "Haonan Zhong",
-      "Ziqi Ding",
-      "Jingling Xue",
-      "Yuekang Li"
-    ],
+    "authors": ["Wei Song", "Haonan Zhong", "Ziqi Ding", "Jingling Xue", "Yuekang Li"],
     "summary": "The Model Context Protocol (MCP) enables large language models (LLMs) to access external resources on demand. While commonly assumed to enhance performance, how LLMs actually leverage this capability remains poorly understood. We introduce MCPGAUGE, the first comprehensive evaluation framework for probing LLM-MCP interactions along four key dimensions: proactivity (self-initiated tool use), compliance (adherence to tool-use instructions), effectiveness (task performance post-integration), and overhead (computational cost incurred). MCPGAUGE comprises a 160-prompt suite and 25 datasets spanning knowledge comprehension, general reasoning, and code generation. Our large-scale evaluation, spanning six commercial LLMs, 30 MCP tool suites, and both one- and two-turn interaction settings, comprises around 20,000 API calls and over USD 6,000 in computational cost. This comprehensive study reveals four key findings that challenge prevailing assumptions about the effectiveness of MCP integration. These insights highlight critical limitations in current AI-tool integration and position MCPGAUGE as a principled benchmark for advancing controllable, tool-augmented LLMs.",
     "source_url": "https://arxiv.org/src/2508.12566"
   },
@@ -820,10 +785,7 @@
     "arxiv_id": "2601.17549",
     "paper_id": "/arxiv/2601.17549",
     "title": "Breaking the Protocol: Security Analysis of the Model Context Protocol Specification and Prompt Injection Vulnerabilities in Tool-Integrated LLM Agents",
-    "authors": [
-      "Narek Maloyan",
-      "Dmitry Namiot"
-    ],
+    "authors": ["Narek Maloyan", "Dmitry Namiot"],
     "summary": "The Model Context Protocol (MCP) has emerged as a de facto standard for integrating Large Language Models with external tools, yet no formal security analysis of the protocol specification exists. We present the first rigorous security analysis of MCP's architectural design, identifying three fundamental protocol-level vulnerabilities: (1) absence of capability attestation allowing servers to claim arbitrary permissions, (2) bidirectional sampling without origin authentication enabling server-side prompt injection, and (3) implicit trust propagation in multi-server configurations. We implement \\textsc{MCPBench}, a novel framework bridging existing agent security benchmarks to MCP-compliant infrastructure, enabling direct measurement of protocol-specific attack surfaces. Through controlled experiments on 847 attack scenarios across five MCP server implementations, we demonstrate that MCP's architectural choices amplify attack success rates by 23--41\\% compared to equivalent non-MCP integrations. We propose \\textsc{MCPSec}, a backward-compatible protocol extension adding capability attestation and message authentication, reducing attack success rates from 52.8\\% to 12.4\\% with median latency overhead of 8.3ms per message. Our findings establish that MCP's security weaknesses are architectural rather than implementation-specific, requiring protocol-level remediation.",
     "source_url": "https://arxiv.org/src/2601.17549"
   },
@@ -831,9 +793,7 @@
     "arxiv_id": "2602.00015",
     "paper_id": "/arxiv/2602.00015",
     "title": "G-MemLLM: Gated Latent Memory Augmentation for Long-Context Reasoning in Large Language Models",
-    "authors": [
-      "Xun Xu"
-    ],
+    "authors": ["Xun Xu"],
     "summary": "Large Language Models (LLMs) have demonstrated remarkable capabilities in natural language understanding, yet they remain constrained by the finite capacity of their context windows and the inherent difficulty of maintaining long-term factual consistency during multi-hop reasoning. While existing methods utilize context compression or recurrent tokens, they often suffer from ``context rot'' or the dilution of information over long horizons. In this paper, we propose \\textbf{G-MemLLM}, a memory-augmented architecture that integrates a frozen LLM backbone with a trainable \\textbf{Latent Memory Bank}. Our key innovation is a GRU-style gated update logic that allows the model to selectively update, preserve, or overwrite latent memory slots, preventing the vanishing gradients of knowledge common in recurrent systems. We evaluate G-MemLLM across scales, from GPT-2 (124M) to Llama 3.1 (8B), on the HotpotQA and Zero-Shot Relation Extraction (ZsRE) benchmarks. Our results demonstrate that G-MemLLM significantly enhances multi-hop reasoning and relational precision, achieving a 13.3\\% accuracy boost on ZsRE for Llama 3.1-8B, and it also yields improvements across model scales, boosting Answer F1 by 8.56 points for GPT-2 and increasing Supporting Fact F1 by 6.89 points for Llama 3.1-8B on HotpotQA.",
     "source_url": "https://arxiv.org/src/2602.00015"
   },
@@ -841,11 +801,7 @@
     "arxiv_id": "2602.07962",
     "paper_id": "/arxiv/2602.07962",
     "title": "LOCA-bench: Benchmarking Language Agents Under Controllable and Extreme Context Growth",
-    "authors": [
-      "Weihao Zeng",
-      "Yuzhen Huang",
-      "Junxian He"
-    ],
+    "authors": ["Weihao Zeng", "Yuzhen Huang", "Junxian He"],
     "summary": "Large language models (LLMs) are increasingly capable of carrying out long-running, real-world tasks. However, as the amount of context grows, their reliability often deteriorates, a phenomenon known as \"context rot\". Existing long-context benchmarks primarily focus on single-step settings that evaluate a model's ability to retrieve information from a long snippet. In realistic scenarios, however, LLMs often need to act as agents that explore environments, follow instructions and plans, extract useful information, and predict correct actions under a dynamically growing context. To assess language agents in such settings, we introduce LOCA-bench (a benchmark for LOng-Context Agents). Given a task prompt, LOCA-bench leverages automated and scalable control of environment states to regulate the agent's context length. This design enables LOCA-bench to extend the context length potentially to infinity in a controlled way while keeping the underlying task semantics fixed. LOCA-bench evaluates language agents as a combination of models and scaffolds, including various context management strategies. While agent performance generally degrades as the environment states grow more complex, advanced context management techniques can substantially improve the overall success rate. We open-source LOCA-bench to provide a platform for evaluating models and scaffolds in long-context, agentic scenarios: this https URL",
     "source_url": "https://arxiv.org/src/2602.07962"
   },
@@ -874,11 +830,7 @@
     "arxiv_id": "2603.20133",
     "paper_id": "/arxiv/2603.20133",
     "title": "Reasoning Gets Harder for LLMs Inside A Dialogue",
-    "authors": [
-      "Ivan Kartáč",
-      "Mateusz Lango",
-      "Ondřej Dušek"
-    ],
+    "authors": ["Ivan Kartáč", "Mateusz Lango", "Ondřej Dušek"],
     "summary": "Large Language Models (LLMs) achieve strong performance on many reasoning benchmarks, yet these evaluations typically focus on isolated tasks that differ from real-world usage in task-oriented dialogue (TOD). In this setting, LLMs must perform reasoning inherently while generating text and adhering to instructions on role, format, and style. This mismatch raises concerns about whether benchmark performance accurately reflects models' reasoning robustness in TOD setting. We investigate how framing reasoning tasks within TOD affects LLM performance by introducing BOULDER, a new dynamic benchmark covering eight travel-related tasks that require arithmetic, spatial, and temporal reasoning with both commonsense and formal aspects. Each problem is presented in both isolated and dialogue-based variants, enabling controlled comparison while mitigating data contamination. Experiments on eight LLMs reveal a substantial and consistent performance gap between isolated and dialogue settings. Through ablations and qualitative analysis, we show that this gap is largely driven by the multi-turn nature of dialogue, with additional effects from role conditioning and tool-use requirements. Our results highlight the need to evaluate LLM reasoning in realistic interactive scenarios.",
     "source_url": "https://arxiv.org/src/2603.20133"
   },
@@ -886,12 +838,7 @@
     "arxiv_id": "2603.22489",
     "paper_id": "/arxiv/2603.22489",
     "title": "Model Context Protocol Threat Modeling and Analyzing Vulnerabilities to Prompt Injection with Tool Poisoning",
-    "authors": [
-      "Charoes Huang",
-      "Xin Huang",
-      "Ngoc Phu Tran",
-      "Amin Milani Fard"
-    ],
+    "authors": ["Charoes Huang", "Xin Huang", "Ngoc Phu Tran", "Amin Milani Fard"],
     "summary": "The Model Context Protocol (MCP) has rapidly emerged as a universal standard for connecting AI assistants to external tools and data sources. While MCP simplifies integration between AI applications and various services, it introduces significant security vulnerabilities, particularly on the client side. In this work we conduct threat modelings of MCP implementations using STRIDE (Spoofing, Tampering, Repudiation, Information Disclosure, Denial of Service, Elevation of Privilege) and DREAD (Damage, Reproducibility, Exploitability, Affected Users, Discoverability) frameworks across five key components: (1) MCP Host and Client, (2) LLM, (3) MCP Server, (4) External Data Stores, and (5) Authorization Server. This comprehensive analysis reveals tool poisoning-where malicious instructions are embedded in tool metadata-as the most prevalent and impactful client-side vulnerability. We therefore focus our empirical evaluation on this critical attack vector, providing a systematic comparison of how seven major MCP clients validate and defend against tool poisoning attacks. Our analysis reveals significant security issues with most tested clients due to insufficient static validation and parameter visibility. We propose a multi-layered defense strategy encompassing static metadata analysis, model decision path tracking, behavioral anomaly detection, and user transparency mechanisms. This research addresses a critical gap in MCP security, which has primarily focused on server-side vulnerabilities, and provides actionable recommendations and mitigation strategies for securing AI agent ecosystems.",
     "source_url": "https://arxiv.org/src/2603.22489"
   },
@@ -899,13 +846,7 @@
     "arxiv_id": "2604.10261",
     "paper_id": "/arxiv/2604.10261",
     "title": "The Amazing Agent Race: Strong Tool Users, Weak Navigators",
-    "authors": [
-      "Zae Myung Kim",
-      "Dongseok Lee",
-      "Jaehyung Kim",
-      "Vipul Raheja",
-      "Dongyeop Kang"
-    ],
+    "authors": ["Zae Myung Kim", "Dongseok Lee", "Jaehyung Kim", "Vipul Raheja", "Dongyeop Kang"],
     "summary": "Existing tool-use benchmarks for LLM agents are overwhelmingly linear: our analysis of six benchmarks shows 55 to 100% of instances are simple chains of 2 to 5 steps. We introduce The Amazing Agent Race (AAR), a benchmark featuring directed acyclic graph (DAG) puzzles (or \"legs\") with fork-merge tool chains. We release 1,400 instances across two variants: sequential (800 legs) and compositional (600 DAG legs). Agents must navigate Wikipedia, execute multi-step tool chains, and aggregate results into a verifiable answer. Legs are procedurally generated from Wikipedia seeds across four difficulty levels with live-API validation. Three complementary metrics (finish-line accuracy, pit-stop visit rate, and roadblock completion rate) separately diagnose navigation, tool-use, and arithmetic failures. Evaluating three agent frameworks on 1,400 legs, the best achieves only 37.2% accuracy. Navigation errors dominate (27 to 52% of trials) while tool-use errors remain below 17%, and agent architecture matters as much as model scale (Claude Code matches Codex CLI at 37% with 6x fewer tokens). The compositional structure of AAR reveals that agents fail not at calling tools but at navigating to the right pages, a blind spot invisible to linear benchmarks. The project page can be accessed at: this https URL.",
     "source_url": "https://arxiv.org/src/2604.10261"
   },
@@ -913,9 +854,7 @@
     "arxiv_id": "2605.00827",
     "paper_id": "/arxiv/2605.00827",
     "title": "Separating Intelligence from Execution: A Workflow Engine for the Model Context Protocol",
-    "authors": [
-      "Abhinav Singh Parmar"
-    ],
+    "authors": ["Abhinav Singh Parmar"],
     "summary": "Large Language Model (LLM) agents increasingly interact with external systems through tool-calling protocols such as the Model Context Protocol (MCP). In prevailing architectures, the agent must reason about every tool invocation in every session, consuming tokens proportional to the number of actions performed--even when the task has been solved before. We present the MCP Workflow Engine, a novel MCP-native orchestration layer that decouples intelligence (deciding what to do) from execution (carrying it out). An agent reasons once to produce a declarative workflow blueprint--a JSON document specifying a directed sequence of MCP tool calls with parameterized templates, loops, parallel branches, and data piping. Subsequent executions are triggered by a single run_workflow tool call, consuming one invocation's worth of tokens regardless of the blueprint's internal complexity. We formalize the MCP Mediator architectural pattern--an MCP server that simultaneously acts as a client to downstream MCP servers--and implement it in TypeScript against the MCP SDK. We evaluate the engine on a production-scale Kubernetes CMDB synchronization task spanning 67 orchestrated steps across 2 MCP servers, 38 namespaces, 13 worker nodes, and 22 distinct resource types. The engine reduces per-execution token cost by over 99%, completes the full cluster graph--comprising 1,200+ nodes and 2,800+ relationships across 20 relationship types--in under 45 seconds, and achieves deterministic, idempotent execution with zero agent involvement at run time.",
     "source_url": "https://arxiv.org/src/2605.00827"
   },
@@ -923,9 +862,7 @@
     "arxiv_id": "2605.04845",
     "paper_id": "/arxiv/2605.04845",
     "title": "Agentic Repository Mining: A Multi-Task Evaluation",
-    "authors": [
-      "Johannes Härtel"
-    ],
+    "authors": ["Johannes Härtel"],
     "summary": "Mining software repositories often requires classifying artifacts like commits, reviews, code lines, or entire repositories into categories. Human labeling is expensive and error-prone; limited context frequently leads to misclassifications or uncertainty in labels. We investigate whether LLM agents that dynamically explore repositories through standard bash commands can match the classification quality of simple LLMs that receive pre-engineered context. Across four tasks, eight approach configurations, and 4943 classifications, agents achieve competitive accuracy despite retrieving their own context. The primary advantage is robustness: agents avoid context-window overflows and scale independently of artifact size. A manual diagnosis of 100 cases where approaches disagree with the ground truth reveals specification ambiguities and labels produced under limited context, suggesting that accuracy against such ground truth may underestimate approaches with broader context access.",
     "source_url": "https://arxiv.org/src/2605.04845"
   },
@@ -933,9 +870,7 @@
     "arxiv_id": "2605.02964",
     "paper_id": "/arxiv/2605.02964",
     "title": "Reward Hacking Benchmark: Measuring Exploits in LLM Agents with Tool Use",
-    "authors": [
-      "Kunvar Thaman"
-    ],
+    "authors": ["Kunvar Thaman"],
     "summary": "Reinforcement learning (RL) trained language model agents with tool access are increasingly deployed in coding assistants, research tools, and autonomous systems. We introduce the Reward Hacking Benchmark (RHB), a suite of multi-step tasks requiring sequential tool operations with naturalistic shortcut opportunities such as skipping verification steps, inferring answers from task-adjacent metadata, or tampering with evaluation-relevant functions. RHB supports independent and chained task regimes, where chain length acts as a proxy for longer-horizon agent behavior. We evaluate 13 frontier models from OpenAI, Anthropic, Google, and DeepSeek. Exploit rates range from 0% (Claude Sonnet 4.5) to 13.9% (DeepSeek-R1-Zero), varying sharply by post-training style. A controlled sibling comparison (DeepSeek-V3 vs. DeepSeek-R1-Zero) shows RL post-training is associated with substantially higher reward hacking (0.6% vs. 13.9%), with consistent gaps across all four task families. We identify six exploit categories and find that 72% of reward hacking episodes include explicit chain-of-thought rationale, suggesting models often frame exploits as legitimate problem-solving. Simple environmental hardening reduces exploit rates by 5.7 percentage points (87.7% relative) without degrading task success. Models with near-zero exploit rates on standard tasks show elevated rates on harder variants, suggesting that production-aligned post-training appears to suppress reward hacking only below a complexity threshold where honest solutions remain tractable.",
     "source_url": "https://arxiv.org/src/2605.02964"
   }

@@ -4,6 +4,7 @@ import { Elysia } from "elysia";
 import { logger } from "@bogeychan/elysia-logger";
 
 import { ingestRoutes } from "./features/ingest/routes";
+import { retrievalRoutes } from "./features/retrieval/routes";
 
 new Elysia()
   .use(logger())
@@ -15,6 +16,7 @@ new Elysia()
   )
   .get("/", () => "OK")
   .use(ingestRoutes)
+  .use(retrievalRoutes)
   .listen(3000, () => {
     console.log("Server is running on http://localhost:3000");
   });
