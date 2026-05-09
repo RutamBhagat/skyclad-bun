@@ -8,6 +8,13 @@
       "when": 1778255675308,
       "tag": "0000_watery_vertigo",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778312104768,
+      "tag": "0001_rapid_husk",
+      "breakpoints": true
     }
   ]
 }

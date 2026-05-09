@@ -26,6 +26,7 @@ export const papers = pgTable("papers", {
   authors: jsonb("authors").$type<string[]>().notNull(),
   summary: text("summary"),
   sourceUrl: text("source_url").notNull(),
+  // used only to resolve a paper namespace from title/authors/summary before doc search
   metadataEmbedding: vector("metadata_embedding", {
     dimensions: embeddingDimensions,
   }),
@@ -48,7 +49,9 @@ export const paperDocs = pgTable(
     }).notNull(),
     markdown: text("markdown").notNull(),
     sourceFile: text("source_file").notNull(),
+    // used inside a resolved paper namespace for semantic section search
     embedding: vector("embedding", { dimensions: embeddingDimensions }),
+    // generated lexical index for exact terms, symbols, acronyms, and citations
     searchText: tsvector("search_text").generatedAlwaysAs(
       (): SQL =>
         sql`to_tsvector('english', coalesce(${paperDocs.sectionTitle}, '') || ' ' || coalesce(${paperDocs.markdown}, ''))`,
@@ -65,8 +68,6 @@ export const paperDocs = pgTable(
 
 export const ingestionJobs = pgTable("ingestion_jobs", {
   id: text("id").primaryKey(),
-  paperId: text("paper_id").notNull(),
-  arxivId: text("arxiv_id").notNull(),
   status: text("status", {
     enum: ["ingesting", "completed", "failed"],
   }).notNull(),

@@ -70,26 +70,24 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
 
       const startedAt = new Date();
       // record the request-time ingestion state before doing external work
-      // await db
-      //   .insert(ingestionJobs)
-      //   .values({
-      //     id: body.paperId,
-      //     paperId: body.paperId,
-      //     arxivId: body.arxivId,
-      //     status: "ingesting",
-      //     error: null,
-      //     startedAt,
-      //     completedAt: null,
-      //   })
-      //   .onConflictDoUpdate({
-      //     target: ingestionJobs.id,
-      //     set: {
-      //       status: "ingesting",
-      //       error: null,
-      //       startedAt,
-      //       completedAt: null,
-      //     },
-      //   });
+      await db
+        .insert(ingestionJobs)
+        .values({
+          id: body.paperId,
+          status: "ingesting",
+          error: null,
+          startedAt,
+          completedAt: null,
+        })
+        .onConflictDoUpdate({
+          target: ingestionJobs.id,
+          set: {
+            status: "ingesting",
+            error: null,
+            startedAt,
+            completedAt: null,
+          },
+        });
 
       const workspace = `.ingest/${body.arxivId}`;
       const sourceArchive = `${workspace}/source.tar.gz`;
@@ -107,7 +105,9 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
 
         // flatten included tex files so pandoc sees one complete latex document
         const mainTex = await findMainTexFile(sourceDir);
-        const expanded = await $`latexpand ${path.basename(mainTex)}`.cwd(path.dirname(mainTex)).text();
+        const expanded = await $`latexpand ${path.basename(mainTex)}`
+          .cwd(path.dirname(mainTex))
+          .text();
         await Bun.write(expandedTex, expanded);
 
         // convert the flattened latex into section-friendly markdown with math intact
@@ -121,79 +121,79 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         await writeSectionFiles(body, sections, sectionsDir);
 
         // metadata embedding helps resolve this paper namespace later
-        // const metadataText = [
-        //   `Title: ${body.title}`,
-        //   `Authors: ${body.authors.join(", ")}`,
-        //   `Summary: ${body.summary}`,
-        // ].join("\n");
-        // const metadataEmbedding = await embed(metadataText);
-        // const sectionEmbeddings = await Promise.all(
-        //   sections.map((section) => embed(`title: ${body.title} | text: ${section.markdown}`)),
-        // );
-        // const completedAt = new Date();
+        const metadataText = [
+          `Title: ${body.title}`,
+          `Authors: ${body.authors.join(", ")}`,
+          `Summary: ${body.summary}`,
+        ].join("\n");
+        const metadataEmbedding = await embed(metadataText);
+        const sectionEmbeddings = await Promise.all(
+          sections.map((section) => embed(`title: ${body.title} | text: ${section.markdown}`)),
+        );
+        const completedAt = new Date();
 
-        // await db.transaction(async (tx) => {
-        //   await tx
-        //     .insert(papers)
-        //     .values({
-        //       id: body.paperId,
-        //       arxivId: body.arxivId,
-        //       title: body.title,
-        //       authors: body.authors,
-        //       summary: body.summary,
-        //       sourceUrl: body.sourceUrl,
-        //       metadataEmbedding,
-        //       ingestedAt: completedAt,
-        //     })
-        //     .onConflictDoUpdate({
-        //       target: papers.id,
-        //       set: {
-        //         title: body.title,
-        //         authors: body.authors,
-        //         summary: body.summary,
-        //         sourceUrl: body.sourceUrl,
-        //         metadataEmbedding,
-        //         ingestedAt: completedAt,
-        //       },
-        //     });
+        await db.transaction(async (tx) => {
+          await tx
+            .insert(papers)
+            .values({
+              id: body.paperId,
+              arxivId: body.arxivId,
+              title: body.title,
+              authors: body.authors,
+              summary: body.summary,
+              sourceUrl: body.sourceUrl,
+              metadataEmbedding,
+              ingestedAt: completedAt,
+            })
+            .onConflictDoUpdate({
+              target: papers.id,
+              set: {
+                title: body.title,
+                authors: body.authors,
+                summary: body.summary,
+                sourceUrl: body.sourceUrl,
+                metadataEmbedding,
+                ingestedAt: completedAt,
+              },
+            });
 
-        //   for (const section of sections) {
-        //     await tx
-        //       .insert(paperDocs)
-        //       .values({
-        //         id: `${body.paperId}#${section.docIndex.toString().padStart(3, "0")}`,
-        //         paperId: body.paperId,
-        //         docIndex: section.docIndex,
-        //         sectionTitle: section.sectionTitle,
-        //         sectionPath: section.sectionPath,
-        //         sectionLevel: section.sectionLevel,
-        //         sectionKind: section.sectionKind,
-        //         markdown: section.markdown,
-        //         sourceFile: section.sourceFile,
-        //         embedding: sectionEmbeddings[section.docIndex],
-        //       })
-        //       .onConflictDoUpdate({
-        //         target: paperDocs.id,
-        //         set: {
-        //           sectionTitle: section.sectionTitle,
-        //           sectionPath: section.sectionPath,
-        //           sectionLevel: section.sectionLevel,
-        //           sectionKind: section.sectionKind,
-        //           markdown: section.markdown,
-        //           sourceFile: section.sourceFile,
-        //           embedding: sectionEmbeddings[section.docIndex],
-        //         },
-        //       });
-        //   }
+          for (const section of sections) {
+            await tx
+              .insert(paperDocs)
+              .values({
+                id: `${body.paperId}#${section.docIndex.toString().padStart(3, "0")}`,
+                paperId: body.paperId,
+                docIndex: section.docIndex,
+                sectionTitle: section.sectionTitle,
+                sectionPath: section.sectionPath,
+                sectionLevel: section.sectionLevel,
+                sectionKind: section.sectionKind,
+                markdown: section.markdown,
+                sourceFile: section.sourceFile,
+                embedding: sectionEmbeddings[section.docIndex],
+              })
+              .onConflictDoUpdate({
+                target: paperDocs.id,
+                set: {
+                  sectionTitle: section.sectionTitle,
+                  sectionPath: section.sectionPath,
+                  sectionLevel: section.sectionLevel,
+                  sectionKind: section.sectionKind,
+                  markdown: section.markdown,
+                  sourceFile: section.sourceFile,
+                  embedding: sectionEmbeddings[section.docIndex],
+                },
+              });
+          }
 
-        //   await tx
-        //     .update(ingestionJobs)
-        //     .set({ status: "completed", error: null, completedAt })
-        //     .where(eq(ingestionJobs.id, body.paperId));
-        // });
+          await tx
+            .update(ingestionJobs)
+            .set({ status: "completed", error: null, completedAt })
+            .where(eq(ingestionJobs.id, body.paperId));
+        });
 
         // only delete the per-paper workspace after the database commit succeeds
-        // await $`rm -rf ${workspace}`; // currently commented out to actually see the result, so i will manually delete this myself
+        // await $`rm -rf ${workspace}`; // currently commented out to actually see the result
 
         return {
           paperId: body.paperId,
