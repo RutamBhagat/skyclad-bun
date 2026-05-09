@@ -192,9 +192,8 @@ export async function ensureIngestTools() {
   const missing: string[] = [];
 
   for (const tool of ingestTools) {
-    try {
-      await $`command -v ${tool}`.quiet();
-    } catch {
+    const resolved = Bun.which(tool);
+    if (!resolved) {
       missing.push(tool);
     }
   }
