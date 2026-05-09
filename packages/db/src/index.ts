@@ -8,4 +8,4 @@ export function createDb() {
 }
 
 export const db = createDb();
-export { and, eq, isNotNull } from "drizzle-orm";
+export { sql, and, eq, isNotNull, cosineDistance, desc } from "drizzle-orm";
