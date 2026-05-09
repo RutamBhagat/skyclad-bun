@@ -41,6 +41,10 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
   .post(
     "/ingest_paper_source",
     async ({ body, set }) => {
+      const arxivId = body.arxivId.replace(/v\d+$/i, "");
+      const paperId = `/arxiv/${arxivId}`;
+      const sourceUrl = `https://arxiv.org/src/${arxivId}`;
+
       // fail before touching db or workspace when a required local tool is missing
       const missing = await ensureIngestTools();
       if (missing.length > 0) {
@@ -56,13 +60,13 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       const existingPaper = await db
         .select({ id: papers.id })
         .from(papers)
-        .where(and(eq(papers.id, body.paperId), isNotNull(papers.ingestedAt)))
+        .where(and(eq(papers.id, paperId), isNotNull(papers.ingestedAt)))
         .limit(1);
 
       if (existingPaper.length > 0) {
         return {
-          paperId: body.paperId,
-          arxivId: body.arxivId,
+          paperId,
+          arxivId,
           status: "already_ingested" as const,
           message: "Paper source is already ingested.",
         };
@@ -73,7 +77,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       await db
         .insert(ingestionJobs)
         .values({
-          id: body.paperId,
+          id: paperId,
           status: "ingesting",
           error: null,
           startedAt,
@@ -89,7 +93,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           },
         });
 
-      const workspace = `.ingest/${body.arxivId}`;
+      const workspace = `.ingest/${arxivId.replaceAll("/", "_")}`;
       const sourceArchive = `${workspace}/source.tar.gz`;
       const sourceDir = `${workspace}/src`;
       const expandedTex = `${workspace}/expanded.tex`;
@@ -99,7 +103,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       try {
         // build the source workspace from the caller-provided arxiv source archive
         await $`mkdir -p ${sourceDir}`;
-        const sourceResponse = await fetch(body.sourceUrl);
+        const sourceResponse = await fetch(sourceUrl);
         await Bun.write(sourceArchive, sourceResponse);
         await $`tar -xzf ${sourceArchive} -C ${sourceDir}`;
 
@@ -118,7 +122,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         const sections = splitMarkdown(markdown);
 
         // keep generated section files inspectable before committing rows
-        await writeSectionFiles(body, sections, sectionsDir);
+        await writeSectionFiles({ ...body, arxivId, paperId, sourceUrl }, sections, sectionsDir);
 
         // metadata embedding helps resolve this paper namespace later
         const metadataText = [
@@ -136,12 +140,12 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           await tx
             .insert(papers)
             .values({
-              id: body.paperId,
-              arxivId: body.arxivId,
+              id: paperId,
+              arxivId,
               title: body.title,
               authors: body.authors,
               summary: body.summary,
-              sourceUrl: body.sourceUrl,
+              sourceUrl,
               metadataEmbedding,
               ingestedAt: completedAt,
             })
@@ -151,7 +155,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
                 title: body.title,
                 authors: body.authors,
                 summary: body.summary,
-                sourceUrl: body.sourceUrl,
+                sourceUrl,
                 metadataEmbedding,
                 ingestedAt: completedAt,
               },
@@ -161,8 +165,8 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
             await tx
               .insert(paperDocs)
               .values({
-                id: `${body.paperId}#${section.docIndex.toString().padStart(3, "0")}`,
-                paperId: body.paperId,
+                id: `${paperId}#${section.docIndex.toString().padStart(3, "0")}`,
+                paperId,
                 docIndex: section.docIndex,
                 sectionTitle: section.sectionTitle,
                 sectionPath: section.sectionPath,
@@ -189,15 +193,15 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           await tx
             .update(ingestionJobs)
             .set({ status: "completed", error: null, completedAt })
-            .where(eq(ingestionJobs.id, body.paperId));
+            .where(eq(ingestionJobs.id, paperId));
         });
 
         // only delete the per-paper workspace after the database commit succeeds
         // await $`rm -rf ${workspace}`; // currently commented out to actually see the result
 
         return {
-          paperId: body.paperId,
-          arxivId: body.arxivId,
+          paperId,
+          arxivId,
           status: "completed" as const,
           sectionCount: sections.length,
           message: "Paper source ingested.",
@@ -207,11 +211,11 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         await db
           .update(ingestionJobs)
           .set({ status: "failed", error: message, completedAt: new Date() })
-          .where(eq(ingestionJobs.id, body.paperId));
+          .where(eq(ingestionJobs.id, paperId));
 
         return {
-          paperId: body.paperId,
-          arxivId: body.arxivId,
+          paperId,
+          arxivId,
           status: "failed" as const,
           message,
         };

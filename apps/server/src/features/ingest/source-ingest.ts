@@ -145,13 +145,16 @@ export async function writeSectionFiles(
   sections: SectionDoc[],
   sectionsDir: string,
 ) {
+  const arxivId = input.arxivId.replace(/v\d+$/i, "");
+  const paperId = `/arxiv/${arxivId}`;
+
   await $`mkdir -p ${sectionsDir}`;
 
   for (const section of sections) {
     const frontmatter = [
       "---",
-      `paper_id: "${input.paperId}"`,
-      `arxiv_id: "${input.arxivId}"`,
+      `paper_id: "${paperId}"`,
+      `arxiv_id: "${arxivId}"`,
       `section: "${section.sectionTitle}"`,
       "section_path:",
       ...section.sectionPath.map((item) => `  - "${item}"`),

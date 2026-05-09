@@ -32,6 +32,7 @@ Runtime behavior:
 
 - Ingestion route accepts only direct arXiv HTML URL.
 - `resolve_ingest_target` returns arXiv candidates with `arxiv_id` (not `htmlUrl`).
+- All ingestion IDs are canonicalized to base arXiv IDs (strip `vN`) before DB writes.
 - Retrieval route resolves from DB only and never triggers ingestion.
 - Query route returns `NOT_INGESTED` when corpus is missing.
 
@@ -54,9 +55,9 @@ type ResolveInput = { paperName: string; query: string };
 type QueryInput = { paperId: string; query: string };
 type IngestInput = { htmlUrl: string };
 
-const CANONICAL_PAPER_ID = /^\/arxiv\/[A-Za-z0-9.\-\/]+(?:v\d+)?$/;
+const CANONICAL_PAPER_ID = /^\/arxiv\/[A-Za-z0-9.\-\/]+$/;
 const ARXIV_HTML_URL =
-  /^https:\/\/arxiv\.org\/html\/[A-Za-z0-9.\-\/]+(?:v\d+)?$/;
+  /^https:\/\/arxiv\.org\/html\/[A-Za-z0-9.\-\/]+$/;
 
 async function callBackend<T>(path: string, body: unknown): Promise<T> {
   const baseUrl = process.env.PAPER_RAG_BASE_URL;
@@ -105,7 +106,7 @@ export default function setup(pi: ExtensionAPI) {
     async execute(_toolCallId, params: IngestInput) {
       if (!ARXIV_HTML_URL.test(params.htmlUrl)) {
         throw new Error(
-          "Invalid htmlUrl. Expected https://arxiv.org/html/<id> or https://arxiv.org/html/<id>vN.",
+          "Invalid htmlUrl. Expected https://arxiv.org/html/<baseId>.",
         );
       }
 
@@ -147,7 +148,7 @@ export default function setup(pi: ExtensionAPI) {
     async execute(_toolCallId, params: QueryInput) {
       if (!CANONICAL_PAPER_ID.test(params.paperId)) {
         throw new Error(
-          "Invalid paperId. Expected /arxiv/<id> or /arxiv/<id>vN format.",
+          "Invalid paperId. Expected /arxiv/<baseId> format.",
         );
       }
 

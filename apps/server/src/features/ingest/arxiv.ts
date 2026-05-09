@@ -30,19 +30,27 @@ export function parseArxivCandidates(rawResponse: string): ArxivCandidate[] {
   const entries = parsedResponse.feed?.entry;
   if (!entries) return [];
 
-  return entries.map((entry) => {
+  const candidatesByPaperId = new Map<string, ArxivCandidate>();
+
+  for (const entry of entries) {
     const arxivId = entry.id
       .replace("http://arxiv.org/abs/", "")
       .replace("https://arxiv.org/abs/", "");
+    const baseArxivId = arxivId.replace(/v\d+$/i, "");
     const authors = entry.author.map((author) => author.name);
 
-    return {
-      arxiv_id: arxivId,
-      paper_id: `/arxiv/${arxivId}`,
+    const paperId = `/arxiv/${baseArxivId}`;
+    if (candidatesByPaperId.has(paperId)) continue;
+
+    candidatesByPaperId.set(paperId, {
+      arxiv_id: baseArxivId,
+      paper_id: paperId,
       title: entry.title,
       authors,
       summary: entry.summary,
-      source_url: `https://arxiv.org/src/${arxivId}`,
-    };
-  });
+      source_url: `https://arxiv.org/src/${baseArxivId}`,
+    });
+  }
+
+  return [...candidatesByPaperId.values()];
 }

@@ -117,33 +117,34 @@ ingest_paper_source({
 
 ### Request Validation
 
-- `arxivId` must be a valid arXiv identifier with an optional version suffix.
-- `paperId` must be `/arxiv/<arxivId>`.
+- `arxivId` may include a version suffix in input, but ingestion must strip it.
+- `paperId` must be canonicalized to `/arxiv/<baseArxivId>`.
 - Do not accept arXiv URLs in this endpoint.
 - Callers pass the selected candidate from `resolve_ingest_target`.
 
 ### Behavior
 
 1. Validate `arxivId`.
-2. Validate `paperId = "/arxiv/<arxivId>"`.
-3. Check Postgres for an existing successfully ingested paper with that exact
+2. Canonicalize `arxivId` to `baseArxivId` by stripping trailing `vN`.
+3. Canonicalize `paperId = "/arxiv/<baseArxivId>"` and `sourceUrl = "https://arxiv.org/src/<baseArxivId>"`.
+4. Check Postgres for an existing successfully ingested paper with that exact
    `paperId`.
-4. If present, return `already_ingested`.
-5. Insert or update an ingestion job row as `ingesting`.
-6. Create `.ingest/<safe-paper-id>/`.
-7. Download `sourceUrl` to `.ingest/<safe-paper-id>/source.tar.gz`.
-8. Extract the archive into `.ingest/<safe-paper-id>/src/`.
-9. Find the main TeX file.
-10. Run `latexpand`.
-11. Run `pandoc`.
-12. Split `paper.md` into section Markdown files.
-13. Build `metadataText` from `title`, `authors`, and `summary`.
-14. Embed `metadataText` into `metadataEmbedding`.
-15. Embed each section Markdown body.
-16. Insert paper metadata, `metadataEmbedding`, and section docs into Postgres in
+5. If present, return `already_ingested`.
+6. Insert or update an ingestion job row as `ingesting`.
+7. Create `.ingest/<safe-paper-id>/`.
+8. Download `sourceUrl` to `.ingest/<safe-paper-id>/source.tar.gz`.
+9. Extract the archive into `.ingest/<safe-paper-id>/src/`.
+10. Find the main TeX file.
+11. Run `latexpand`.
+12. Run `pandoc`.
+13. Split `paper.md` into section Markdown files.
+14. Build `metadataText` from `title`, `authors`, and `summary`.
+15. Embed `metadataText` into `metadataEmbedding`.
+16. Embed each section Markdown body.
+17. Insert paper metadata, `metadataEmbedding`, and section docs into Postgres in
     one DB transaction.
-17. Mark the ingestion job `completed`.
-18. Delete `.ingest/<safe-paper-id>/`.
+18. Mark the ingestion job `completed`.
+19. Delete `.ingest/<safe-paper-id>/`.
 
 If any step fails, keep the workspace for debugging and mark the job `failed`
 with the error message. Only delete files after successful DB commit.
@@ -172,7 +173,7 @@ Create transient ingestion files under the repo root:
 
 ```text
 .ingest/
-  1706.03762v7/
+  1706.03762/
     source.tar.gz
     src/
     expanded.tex
@@ -275,8 +276,8 @@ Section file frontmatter:
 
 ```md
 ---
-paper_id: "/arxiv/1706.03762v7"
-arxiv_id: "1706.03762v7"
+paper_id: "/arxiv/1706.03762"
+arxiv_id: "1706.03762"
 section: "3.2.1 Scaled Dot-Product Attention"
 section_path:
   - "3 Model Architecture"
@@ -319,7 +320,7 @@ default.
 Treat each paper like a Context7 library namespace:
 
 ```text
-paperId: /arxiv/1706.03762v7
+paperId: /arxiv/1706.03762
   docs:
     000 Abstract
     001 1 Introduction
@@ -345,7 +346,7 @@ query_paper_docs({ paperId, query })
 The ingestion job is responsible for creating the namespace and its docs:
 
 ```text
-papers.id = "/arxiv/<arxivId>"
+papers.id = "/arxiv/<baseArxivId>"
 paper_docs.paper_id = papers.id
 paper_docs.id = "<paperId>#<zero-padded-doc-index>"
 ```
@@ -392,7 +393,7 @@ starts. Keep it direct and retrieval-ready:
 
 ```ts
 papers
-  id text primary key                  -- "/arxiv/1706.03762v7"
+  id text primary key                  -- "/arxiv/1706.03762"
   arxiv_id text unique not null
   title text not null
   authors jsonb not null
@@ -402,7 +403,7 @@ papers
   ingested_at timestamp
 
 paper_docs
-  id text primary key                  -- "/arxiv/1706.03762v7#006"
+  id text primary key                  -- "/arxiv/1706.03762#006"
   paper_id text not null references papers(id)
   doc_index integer not null
   section_title text not null
@@ -475,7 +476,7 @@ limit 8;
 ```
 
 Use Drizzle inserts with `onConflictDoNothing` or `onConflictDoUpdate` for
-idempotency. A repeated successful ingest for the same version should not create
+idempotency. A repeated successful ingest for the same base paper should not create
 duplicate docs.
 
 For paper resolution, build and embed paper metadata during ingestion. Keep the

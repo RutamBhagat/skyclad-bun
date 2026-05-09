@@ -1,566 +1,545 @@
 [
-    {
-        "arxiv_id": "1706.03762",
-        "paper_id": "/arxiv/1706.03762",
-        "title": "Attention Is All You Need",
-        "authors": [
-            "Ashish Vaswani",
-            "Noam Shazeer",
-            "Niki Parmar",
-            "Jakob Uszkoreit",
-            "Llion Jones",
-            "Aidan N. Gomez",
-            "Lukasz Kaiser",
-            "Illia Polosukhin"
-        ],
-        "summary": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.",
-        "source_url": "https://arxiv.org/src/1706.03762"
-    },
-    {
-        "arxiv_id": "2001.08361",
-        "paper_id": "/arxiv/2001.08361",
-        "title": "Scaling Laws for Neural Language Models",
-        "authors": [
-            "Jared Kaplan",
-            "Sam McCandlish",
-            "Tom Henighan",
-            "Tom B. Brown",
-            "Benjamin Chess",
-            "Rewon Child",
-            "Scott Gray",
-            "Alec Radford",
-            "Jeffrey Wu",
-            "Dario Amodei"
-        ],
-        "summary": "We study empirical scaling laws for language model performance on the cross-entropy loss. The loss scales as a power-law with model size, dataset size, and the amount of compute used for training, with some trends spanning more than seven orders of magnitude. Other architectural details such as network width or depth have minimal effects within a wide range. Simple equations govern the dependence of overfitting on model/dataset size and the dependence of training speed on model size. These relationships allow us to determine the optimal allocation of a fixed compute budget. Larger models are significantly more sample-efficient, such that optimally compute-efficient training involves training very large models on a relatively modest amount of data and stopping significantly before convergence.",
-        "source_url": "https://arxiv.org/src/2001.08361"
-    },
-    {
-        "arxiv_id": "2005.14165",
-        "paper_id": "/arxiv/2005.14165",
-        "title": "Language Models are Few-Shot Learners",
-        "authors": [
-            "Tom B. Brown",
-            "Benjamin Mann",
-            "Nick Ryder",
-            "Melanie Subbiah",
-            "Jared Kaplan",
-            "Prafulla Dhariwal",
-            "Arvind Neelakantan",
-            "Pranav Shyam",
-            "Girish Sastry",
-            "Amanda Askell",
-            "Sandhini Agarwal",
-            "Ariel Herbert-Voss",
-            "Gretchen Krueger",
-            "Tom Henighan",
-            "Rewon Child",
-            "Aditya Ramesh",
-            "Daniel M. Ziegler",
-            "Jeffrey Wu",
-            "Clemens Winter",
-            "Christopher Hesse",
-            "Mark Chen",
-            "Eric Sigler",
-            "Mateusz Litwin",
-            "Scott Gray",
-            "Benjamin Chess",
-            "Jack Clark",
-            "Christopher Berner",
-            "Sam McCandlish",
-            "Alec Radford",
-            "Ilya Sutskever",
-            "Dario Amodei"
-        ],
-        "summary": "Recent work has demonstrated substantial gains on many NLP tasks and benchmarks by pre-training on a large corpus of text followed by fine-tuning on a specific task. While typically task-agnostic in architecture, this method still requires task-specific fine-tuning datasets of thousands or tens of thousands of examples. By contrast, humans can generally perform a new language task from only a few examples or from simple instructions - something which current NLP systems still largely struggle to do. Here we show that scaling up language models greatly improves task-agnostic, few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches. Specifically, we train GPT-3, an autoregressive language model with 175 billion parameters, 10x more than any previous non-sparse language model, and test its performance in the few-shot setting. For all tasks, GPT-3 is applied without any gradient updates or fine-tuning, with tasks and few-shot demonstrations specified purely via text interaction with the model. GPT-3 achieves strong performance on many NLP datasets, including translation, question-answering, and cloze tasks, as well as several tasks that require on-the-fly reasoning or domain adaptation, such as unscrambling words, using a novel word in a sentence, or performing 3-digit arithmetic. At the same time, we also identify some datasets where GPT-3's few-shot learning still struggles, as well as some datasets where GPT-3 faces methodological issues related to training on large web corpora. Finally, we find that GPT-3 can generate samples of news articles which human evaluators have difficulty distinguishing from articles written by humans. We discuss broader societal impacts of this finding and of GPT-3 in general.",
-        "source_url": "https://arxiv.org/src/2005.14165"
-    },
-    {
-        "arxiv_id": "2005.11401",
-        "paper_id": "/arxiv/2005.11401",
-        "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
-        "authors": [
-            "Patrick Lewis",
-            "Ethan Perez",
-            "Aleksandra Piktus",
-            "Fabio Petroni",
-            "Vladimir Karpukhin",
-            "Naman Goyal",
-            "Heinrich Küttler",
-            "Mike Lewis",
-            "Wen-tau Yih",
-            "Tim Rocktäschel",
-            "Sebastian Riedel",
-            "Douwe Kiela"
-        ],
-        "summary": "Large pre-trained language models have been shown to store factual knowledge in their parameters, and achieve state-of-the-art results when fine-tuned on downstream NLP tasks. However, their ability to access and precisely manipulate knowledge is still limited, and hence on knowledge-intensive tasks, their performance lags behind task-specific architectures. Additionally, providing provenance for their decisions and updating their world knowledge remain open research problems. Pre-trained models with a differentiable access mechanism to explicit non-parametric memory can overcome this issue, but have so far been only investigated for extractive downstream tasks. We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) -- models which combine pre-trained parametric and non-parametric memory for language generation. We introduce RAG models where the parametric memory is a pre-trained seq2seq model and the non-parametric memory is a dense vector index of Wikipedia, accessed with a pre-trained neural retriever. We compare two RAG formulations, one which conditions on the same retrieved passages across the whole generated sequence, the other can use different passages per token. We fine-tune and evaluate our models on a wide range of knowledge-intensive NLP tasks and set the state-of-the-art on three open domain QA tasks, outperforming parametric seq2seq models and task-specific retrieve-and-extract architectures. For language generation tasks, we find that RAG models generate more specific, diverse and factual language than a state-of-the-art parametric-only seq2seq baseline.",
-        "source_url": "https://arxiv.org/src/2005.11401"
-    },
-    {
-        "arxiv_id": "2103.00020",
-        "paper_id": "/arxiv/2103.00020",
-        "title": "Learning Transferable Visual Models From Natural Language Supervision",
-        "authors": [
-            "Alec Radford",
-            "Jong Wook Kim",
-            "Chris Hallacy",
-            "Aditya Ramesh",
-            "Gabriel Goh",
-            "Sandhini Agarwal",
-            "Girish Sastry",
-            "Amanda Askell",
-            "Pamela Mishkin",
-            "Jack Clark",
-            "Gretchen Krueger",
-            "Ilya Sutskever"
-        ],
-        "summary": "State-of-the-art computer vision systems are trained to predict a fixed set of predetermined object categories. This restricted form of supervision limits their generality and usability since additional labeled data is needed to specify any other visual concept. Learning directly from raw text about images is a promising alternative which leverages a much broader source of supervision. We demonstrate that the simple pre-training task of predicting which caption goes with which image is an efficient and scalable way to learn SOTA image representations from scratch on a dataset of 400 million (image, text) pairs collected from the internet. After pre-training, natural language is used to reference learned visual concepts (or describe new ones) enabling zero-shot transfer of the model to downstream tasks. We study the performance of this approach by benchmarking on over 30 different existing computer vision datasets, spanning tasks such as OCR, action recognition in videos, geo-localization, and many types of fine-grained object classification. The model transfers non-trivially to most tasks and is often competitive with a fully supervised baseline without the need for any dataset specific training. For instance, we match the accuracy of the original ResNet-50 on ImageNet zero-shot without needing to use any of the 1.28 million training examples it was trained on. We release our code and pre-trained model weights at this https URL.",
-        "source_url": "https://arxiv.org/src/2103.00020"
-    },
-    {
-        "arxiv_id": "2106.09685",
-        "paper_id": "/arxiv/2106.09685",
-        "title": "LoRA: Low-Rank Adaptation of Large Language Models",
-        "authors": [
-            "Edward J. Hu",
-            "Yelong Shen",
-            "Phillip Wallis",
-            "Zeyuan Allen-Zhu",
-            "Yuanzhi Li",
-            "Shean Wang",
-            "Lu Wang",
-            "Weizhu Chen"
-        ],
-        "summary": "An important paradigm of natural language processing consists of large-scale pre-training on general domain data and adaptation to particular tasks or domains. As we pre-train larger models, full fine-tuning, which retrains all model parameters, becomes less feasible. Using GPT-3 175B as an example -- deploying independent instances of fine-tuned models, each with 175B parameters, is prohibitively expensive. We propose Low-Rank Adaptation, or LoRA, which freezes the pre-trained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architecture, greatly reducing the number of trainable parameters for downstream tasks. Compared to GPT-3 175B fine-tuned with Adam, LoRA can reduce the number of trainable parameters by 10,000 times and the GPU memory requirement by 3 times. LoRA performs on-par or better than fine-tuning in model quality on RoBERTa, DeBERTa, GPT-2, and GPT-3, despite having fewer trainable parameters, a higher training throughput, and, unlike adapters, no additional inference latency. We also provide an empirical investigation into rank-deficiency in language model adaptation, which sheds light on the efficacy of LoRA. We release a package that facilitates the integration of LoRA with PyTorch models and provide our implementations and model checkpoints for RoBERTa, DeBERTa, and GPT-2 at this https URL.",
-        "source_url": "https://arxiv.org/src/2106.09685"
-    },
-    {
-        "arxiv_id": "2112.10752",
-        "paper_id": "/arxiv/2112.10752",
-        "title": "High-Resolution Image Synthesis with Latent Diffusion Models",
-        "authors": [
-            "Robin Rombach",
-            "Andreas Blattmann",
-            "Dominik Lorenz",
-            "Patrick Esser",
-            "Björn Ommer"
-        ],
-        "summary": "By decomposing the image formation process into a sequential application of denoising autoencoders, diffusion models (DMs) achieve state-of-the-art synthesis results on image data and beyond. Additionally, their formulation allows for a guiding mechanism to control the image generation process without retraining. However, since these models typically operate directly in pixel space, optimization of powerful DMs often consumes hundreds of GPU days and inference is expensive due to sequential evaluations. To enable DM training on limited computational resources while retaining their quality and flexibility, we apply them in the latent space of powerful pretrained autoencoders. In contrast to previous work, training diffusion models on such a representation allows for the first time to reach a near-optimal point between complexity reduction and detail preservation, greatly boosting visual fidelity. By introducing cross-attention layers into the model architecture, we turn diffusion models into powerful and flexible generators for general conditioning inputs such as text or bounding boxes and high-resolution synthesis becomes possible in a convolutional manner. Our latent diffusion models (LDMs) achieve a new state of the art for image inpainting and highly competitive performance on various tasks, including unconditional image generation, semantic scene synthesis, and super-resolution, while significantly reducing computational requirements compared to pixel-based DMs. Code is available at this https URL .",
-        "source_url": "https://arxiv.org/src/2112.10752"
-    },
-    {
-        "arxiv_id": "2201.11903",
-        "paper_id": "/arxiv/2201.11903",
-        "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
-        "authors": [
-            "Jason Wei",
-            "Xuezhi Wang",
-            "Dale Schuurmans",
-            "Maarten Bosma",
-            "Brian Ichter",
-            "Fei Xia",
-            "Ed Chi",
-            "Quoc Le",
-            "Denny Zhou"
-        ],
-        "summary": "We explore how generating a chain of thought -- a series of intermediate reasoning steps -- significantly improves the ability of large language models to perform complex reasoning. In particular, we show how such reasoning abilities emerge naturally in sufficiently large language models via a simple method called chain of thought prompting, where a few chain of thought demonstrations are provided as exemplars in prompting. Experiments on three large language models show that chain of thought prompting improves performance on a range of arithmetic, commonsense, and symbolic reasoning tasks. The empirical gains can be striking. For instance, prompting a 540B-parameter language model with just eight chain of thought exemplars achieves state of the art accuracy on the GSM8K benchmark of math word problems, surpassing even finetuned GPT-3 with a verifier.",
-        "source_url": "https://arxiv.org/src/2201.11903"
-    },
-    {
-        "arxiv_id": "2203.11171",
-        "paper_id": "/arxiv/2203.11171",
-        "title": "Self-Consistency Improves Chain of Thought Reasoning in Language Models",
-        "authors": [
-            "Xuezhi Wang",
-            "Jason Wei",
-            "Dale Schuurmans",
-            "Quoc Le",
-            "Ed Chi",
-            "Sharan Narang",
-            "Aakanksha Chowdhery",
-            "Denny Zhou"
-        ],
-        "summary": "Chain-of-thought prompting combined with pre-trained large language models has achieved encouraging results on complex reasoning tasks. In this paper, we propose a new decoding strategy, self-consistency, to replace the naive greedy decoding used in chain-of-thought prompting. It first samples a diverse set of reasoning paths instead of only taking the greedy one, and then selects the most consistent answer by marginalizing out the sampled reasoning paths. Self-consistency leverages the intuition that a complex reasoning problem typically admits multiple different ways of thinking leading to its unique correct answer. Our extensive empirical evaluation shows that self-consistency boosts the performance of chain-of-thought prompting with a striking margin on a range of popular arithmetic and commonsense reasoning benchmarks, including GSM8K (+17.9%), SVAMP (+11.0%), AQuA (+12.2%), StrategyQA (+6.4%) and ARC-challenge (+3.9%).",
-        "source_url": "https://arxiv.org/src/2203.11171"
-    },
-    {
-        "arxiv_id": "2203.14465",
-        "paper_id": "/arxiv/2203.14465",
-        "title": "STaR: Bootstrapping Reasoning With Reasoning",
-        "authors": [
-            "Eric Zelikman",
-            "Yuhuai Wu",
-            "Jesse Mu",
-            "Noah D. Goodman"
-        ],
-        "summary": "Generating step-by-step \"chain-of-thought\" rationales improves language model performance on complex reasoning tasks like mathematics or commonsense question-answering. However, inducing language model rationale generation currently requires either constructing massive rationale datasets or sacrificing accuracy by using only few-shot inference. We propose a technique to iteratively leverage a small number of rationale examples and a large dataset without rationales, to bootstrap the ability to perform successively more complex reasoning. This technique, the \"Self-Taught Reasoner\" (STaR), relies on a simple loop: generate rationales to answer many questions, prompted with a few rationale examples; if the generated answers are wrong, try again to generate a rationale given the correct answer; fine-tune on all the rationales that ultimately yielded correct answers; repeat. We show that STaR significantly improves performance on multiple datasets compared to a model fine-tuned to directly predict final answers, and performs comparably to fine-tuning a 30$\\times$ larger state-of-the-art language model on CommensenseQA. Thus, STaR lets a model improve itself by learning from its own generated reasoning.",
-        "source_url": "https://arxiv.org/src/2203.14465"
-    },
-    {
-        "arxiv_id": "2203.02155",
-        "paper_id": "/arxiv/2203.02155",
-        "title": "Training language models to follow instructions with human feedback",
-        "authors": [
-            "Long Ouyang",
-            "Jeff Wu",
-            "Xu Jiang",
-            "Diogo Almeida",
-            "Carroll L. Wainwright",
-            "Pamela Mishkin",
-            "Chong Zhang",
-            "Sandhini Agarwal",
-            "Katarina Slama",
-            "Alex Ray",
-            "John Schulman",
-            "Jacob Hilton",
-            "Fraser Kelton",
-            "Luke Miller",
-            "Maddie Simens",
-            "Amanda Askell",
-            "Peter Welinder",
-            "Paul Christiano",
-            "Jan Leike",
-            "Ryan Lowe"
-        ],
-        "summary": "Making language models bigger does not inherently make them better at following a user's intent. For example, large language models can generate outputs that are untruthful, toxic, or simply not helpful to the user. In other words, these models are not aligned with their users. In this paper, we show an avenue for aligning language models with user intent on a wide range of tasks by fine-tuning with human feedback. Starting with a set of labeler-written prompts and prompts submitted through the OpenAI API, we collect a dataset of labeler demonstrations of the desired model behavior, which we use to fine-tune GPT-3 using supervised learning. We then collect a dataset of rankings of model outputs, which we use to further fine-tune this supervised model using reinforcement learning from human feedback. We call the resulting models InstructGPT. In human evaluations on our prompt distribution, outputs from the 1.3B parameter InstructGPT model are preferred to outputs from the 175B GPT-3, despite having 100x fewer parameters. Moreover, InstructGPT models show improvements in truthfulness and reductions in toxic output generation while having minimal performance regressions on public NLP datasets. Even though InstructGPT still makes simple mistakes, our results show that fine-tuning with human feedback is a promising direction for aligning language models with human intent.",
-        "source_url": "https://arxiv.org/src/2203.02155"
-    },
-    {
-        "arxiv_id": "2203.15556",
-        "paper_id": "/arxiv/2203.15556",
-        "title": "Training Compute-Optimal Large Language Models",
-        "authors": [
-            "Jordan Hoffmann",
-            "Sebastian Borgeaud",
-            "Arthur Mensch",
-            "Elena Buchatskaya",
-            "Trevor Cai",
-            "Eliza Rutherford",
-            "Diego de Las Casas",
-            "Lisa Anne Hendricks",
-            "Johannes Welbl",
-            "Aidan Clark",
-            "Tom Hennigan",
-            "Eric Noland",
-            "Katie Millican",
-            "George van den Driessche",
-            "Bogdan Damoc",
-            "Aurelia Guy",
-            "Simon Osindero",
-            "Karen Simonyan",
-            "Erich Elsen",
-            "Jack W. Rae",
-            "Oriol Vinyals",
-            "Laurent Sifre"
-        ],
-        "summary": "We investigate the optimal model size and number of tokens for training a transformer language model under a given compute budget. We find that current large language models are significantly undertrained, a consequence of the recent focus on scaling language models whilst keeping the amount of training data constant. By training over 400 language models ranging from 70 million to over 16 billion parameters on 5 to 500 billion tokens, we find that for compute-optimal training, the model size and the number of training tokens should be scaled equally: for every doubling of model size the number of training tokens should also be doubled. We test this hypothesis by training a predicted compute-optimal model, Chinchilla, that uses the same compute budget as Gopher but with 70B parameters and 4$\\times$ more more data. Chinchilla uniformly and significantly outperforms Gopher (280B), GPT-3 (175B), Jurassic-1 (178B), and Megatron-Turing NLG (530B) on a large range of downstream evaluation tasks. This also means that Chinchilla uses substantially less compute for fine-tuning and inference, greatly facilitating downstream usage. As a highlight, Chinchilla reaches a state-of-the-art average accuracy of 67.5% on the MMLU benchmark, greater than a 7% improvement over Gopher.",
-        "source_url": "https://arxiv.org/src/2203.15556"
-    },
-    {
-        "arxiv_id": "2205.00445",
-        "paper_id": "/arxiv/2205.00445",
-        "title": "MRKL Systems: A modular, neuro-symbolic architecture that combines large language models, external knowledge sources and discrete reasoning",
-        "authors": [
-            "Ehud Karpas",
-            "Omri Abend",
-            "Yonatan Belinkov",
-            "Barak Lenz",
-            "Opher Lieber",
-            "Nir Ratner",
-            "Yoav Shoham",
-            "Hofit Bata",
-            "Yoav Levine",
-            "Kevin Leyton-Brown",
-            "Dor Muhlgay",
-            "Noam Rozen",
-            "Erez Schwartz",
-            "Gal Shachaf",
-            "Shai Shalev-Shwartz",
-            "Amnon Shashua",
-            "Moshe Tenenholtz"
-        ],
-        "summary": "Huge language models (LMs) have ushered in a new era for AI, serving as a gateway to natural-language-based knowledge tasks. Although an essential element of modern AI, LMs are also inherently limited in a number of ways. We discuss these limitations and how they can be avoided by adopting a systems approach. Conceptualizing the challenge as one that involves knowledge and reasoning in addition to linguistic processing, we define a flexible architecture with multiple neural models, complemented by discrete knowledge and reasoning modules. We describe this neuro-symbolic architecture, dubbed the Modular Reasoning, Knowledge and Language (MRKL, pronounced \"miracle\") system, some of the technical challenges in implementing it, and Jurassic-X, AI21 Labs' MRKL system implementation.",
-        "source_url": "https://arxiv.org/src/2205.00445"
-    },
-    {
-        "arxiv_id": "2210.03629",
-        "paper_id": "/arxiv/2210.03629",
-        "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
-        "authors": [
-            "Shunyu Yao",
-            "Jeffrey Zhao",
-            "Dian Yu",
-            "Nan Du",
-            "Izhak Shafran",
-            "Karthik Narasimhan",
-            "Yuan Cao"
-        ],
-        "summary": "While large language models (LLMs) have demonstrated impressive capabilities across tasks in language understanding and interactive decision making, their abilities for reasoning (e.g. chain-of-thought prompting) and acting (e.g. action plan generation) have primarily been studied as separate topics. In this paper, we explore the use of LLMs to generate both reasoning traces and task-specific actions in an interleaved manner, allowing for greater synergy between the two: reasoning traces help the model induce, track, and update action plans as well as handle exceptions, while actions allow it to interface with external sources, such as knowledge bases or environments, to gather additional information. We apply our approach, named ReAct, to a diverse set of language and decision making tasks and demonstrate its effectiveness over state-of-the-art baselines, as well as improved human interpretability and trustworthiness over methods without reasoning or acting components. Concretely, on question answering (HotpotQA) and fact verification (Fever), ReAct overcomes issues of hallucination and error propagation prevalent in chain-of-thought reasoning by interacting with a simple Wikipedia API, and generates human-like task-solving trajectories that are more interpretable than baselines without reasoning traces. On two interactive decision making benchmarks (ALFWorld and WebShop), ReAct outperforms imitation and reinforcement learning methods by an absolute success rate of 34% and 10% respectively, while being prompted with only one or two in-context examples. Project site with code: this https URL",
-        "source_url": "https://arxiv.org/src/2210.03629"
-    },
-    {
-        "arxiv_id": "2211.10435",
-        "paper_id": "/arxiv/2211.10435",
-        "title": "PAL: Program-aided Language Models",
-        "authors": [
-            "Luyu Gao",
-            "Aman Madaan",
-            "Shuyan Zhou",
-            "Uri Alon",
-            "Pengfei Liu",
-            "Yiming Yang",
-            "Jamie Callan",
-            "Graham Neubig"
-        ],
-        "summary": "Large language models (LLMs) have recently demonstrated an impressive ability to perform arithmetic and symbolic reasoning tasks, when provided with a few examples at test time (\"few-shot prompting\"). Much of this success can be attributed to prompting methods such as \"chain-of-thought'', which employ LLMs for both understanding the problem description by decomposing it into steps, as well as solving each step of the problem. While LLMs seem to be adept at this sort of step-by-step decomposition, LLMs often make logical and arithmetic mistakes in the solution part, even when the problem is decomposed correctly. In this paper, we present Program-Aided Language models (PAL): a novel approach that uses the LLM to read natural language problems and generate programs as the intermediate reasoning steps, but offloads the solution step to a runtime such as a Python interpreter. With PAL, decomposing the natural language problem into runnable steps remains the only learning task for the LLM, while solving is delegated to the interpreter. We demonstrate this synergy between a neural LLM and a symbolic interpreter across 13 mathematical, symbolic, and algorithmic reasoning tasks from BIG-Bench Hard and other benchmarks. In all these natural language reasoning tasks, generating code using an LLM and reasoning using a Python interpreter leads to more accurate results than much larger models. For example, PAL using Codex achieves state-of-the-art few-shot accuracy on the GSM8K benchmark of math word problems, surpassing PaLM-540B which uses chain-of-thought by absolute 15% top-1. Our code and data are publicly available at this http URL .",
-        "source_url": "https://arxiv.org/src/2211.10435"
-    },
-    {
-        "arxiv_id": "2205.14135",
-        "paper_id": "/arxiv/2205.14135",
-        "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
-        "authors": [
-            "Tri Dao",
-            "Daniel Y. Fu",
-            "Stefano Ermon",
-            "Atri Rudra",
-            "Christopher Ré"
-        ],
-        "summary": "Transformers are slow and memory-hungry on long sequences, since the time and memory complexity of self-attention are quadratic in sequence length. Approximate attention methods have attempted to address this problem by trading off model quality to reduce the compute complexity, but often do not achieve wall-clock speedup. We argue that a missing principle is making attention algorithms IO-aware -- accounting for reads and writes between levels of GPU memory. We propose FlashAttention, an IO-aware exact attention algorithm that uses tiling to reduce the number of memory reads/writes between GPU high bandwidth memory (HBM) and GPU on-chip SRAM. We analyze the IO complexity of FlashAttention, showing that it requires fewer HBM accesses than standard attention, and is optimal for a range of SRAM sizes. We also extend FlashAttention to block-sparse attention, yielding an approximate attention algorithm that is faster than any existing approximate attention method. FlashAttention trains Transformers faster than existing baselines: 15% end-to-end wall-clock speedup on BERT-large (seq. length 512) compared to the MLPerf 1.1 training speed record, 3$\\times$ speedup on GPT-2 (seq. length 1K), and 2.4$\\times$ speedup on long-range arena (seq. length 1K-4K). FlashAttention and block-sparse FlashAttention enable longer context in Transformers, yielding higher quality models (0.7 better perplexity on GPT-2 and 6.4 points of lift on long-document classification) and entirely new capabilities: the first Transformers to achieve better-than-chance performance on the Path-X challenge (seq. length 16K, 61.4% accuracy) and Path-256 (seq. length 64K, 63.1% accuracy).",
-        "source_url": "https://arxiv.org/src/2205.14135"
-    },
-    {
-        "arxiv_id": "2302.13971",
-        "paper_id": "/arxiv/2302.13971",
-        "title": "LLaMA: Open and Efficient Foundation Language Models",
-        "authors": [
-            "Hugo Touvron",
-            "Thibaut Lavril",
-            "Gautier Izacard",
-            "Xavier Martinet",
-            "Marie-Anne Lachaux",
-            "Timothée Lacroix",
-            "Baptiste Rozière",
-            "Naman Goyal",
-            "Eric Hambro",
-            "Faisal Azhar",
-            "Aurelien Rodriguez",
-            "Armand Joulin",
-            "Edouard Grave",
-            "Guillaume Lample"
-        ],
-        "summary": "We introduce LLaMA, a collection of foundation language models ranging from 7B to 65B parameters. We train our models on trillions of tokens, and show that it is possible to train state-of-the-art models using publicly available datasets exclusively, without resorting to proprietary and inaccessible datasets. In particular, LLaMA-13B outperforms GPT-3 (175B) on most benchmarks, and LLaMA-65B is competitive with the best models, Chinchilla-70B and PaLM-540B. We release all our models to the research community.",
-        "source_url": "https://arxiv.org/src/2302.13971"
-    },
-    {
-        "arxiv_id": "2302.04761",
-        "paper_id": "/arxiv/2302.04761",
-        "title": "Toolformer: Language Models Can Teach Themselves to Use Tools",
-        "authors": [
-            "Timo Schick",
-            "Jane Dwivedi-Yu",
-            "Roberto Dessì",
-            "Roberta Raileanu",
-            "Maria Lomeli",
-            "Luke Zettlemoyer",
-            "Nicola Cancedda",
-            "Thomas Scialom"
-        ],
-        "summary": "Language models (LMs) exhibit remarkable abilities to solve new tasks from just a few examples or textual instructions, especially at scale. They also, paradoxically, struggle with basic functionality, such as arithmetic or factual lookup, where much simpler and smaller models excel. In this paper, we show that LMs can teach themselves to use external tools via simple APIs and achieve the best of both worlds. We introduce Toolformer, a model trained to decide which APIs to call, when to call them, what arguments to pass, and how to best incorporate the results into future token prediction. This is done in a self-supervised way, requiring nothing more than a handful of demonstrations for each API. We incorporate a range of tools, including a calculator, a Q\\&A system, two different search engines, a translation system, and a calendar. Toolformer achieves substantially improved zero-shot performance across a variety of downstream tasks, often competitive with much larger models, without sacrificing its core language modeling abilities.",
-        "source_url": "https://arxiv.org/src/2302.04761"
-    },
-    {
-        "arxiv_id": "2304.08244",
-        "paper_id": "/arxiv/2304.08244",
-        "title": "API-Bank: A Comprehensive Benchmark for Tool-Augmented LLMs",
-        "authors": [
-            "Minghao Li",
-            "Yingxiu Zhao",
-            "Bowen Yu",
-            "Feifan Song",
-            "Hangyu Li",
-            "Haiyang Yu",
-            "Zhoujun Li",
-            "Fei Huang",
-            "Yongbin Li"
-        ],
-        "summary": "Recent research has demonstrated that Large Language Models (LLMs) can enhance their capabilities by utilizing external tools. However, three pivotal questions remain unanswered: (1) How effective are current LLMs in utilizing tools? (2) How can we enhance LLMs' ability to utilize tools? (3) What obstacles need to be overcome to leverage tools? To address these questions, we introduce API-Bank, a groundbreaking benchmark, specifically designed for tool-augmented LLMs. For the first question, we develop a runnable evaluation system consisting of 73 API tools. We annotate 314 tool-use dialogues with 753 API calls to assess the existing LLMs' capabilities in planning, retrieving, and calling APIs. For the second question, we construct a comprehensive training set containing 1,888 tool-use dialogues from 2,138 APIs spanning 1,000 distinct domains. Using this dataset, we train Lynx, a tool-augmented LLM initialized from Alpaca. Experimental results demonstrate that GPT-3.5 exhibits improved tool utilization compared to GPT-3, while GPT-4 excels in planning. However, there is still significant potential for further improvement. Moreover, Lynx surpasses Alpaca's tool utilization performance by more than 26 pts and approaches the effectiveness of GPT-3.5. Through error analysis, we highlight the key challenges for future research in this field to answer the third question.",
-        "source_url": "https://arxiv.org/src/2304.08244"
-    },
-    {
-        "arxiv_id": "2305.15334",
-        "paper_id": "/arxiv/2305.15334",
-        "title": "Gorilla: Large Language Model Connected with Massive APIs",
-        "authors": [
-            "Shishir G. Patil",
-            "Tianjun Zhang",
-            "Xin Wang",
-            "Joseph E. Gonzalez"
-        ],
-        "summary": "Large Language Models (LLMs) have seen an impressive wave of advances recently, with models now excelling in a variety of tasks, such as mathematical reasoning and program synthesis. However, their potential to effectively use tools via API calls remains unfulfilled. This is a challenging task even for today's state-of-the-art LLMs such as GPT-4, largely due to their inability to generate accurate input arguments and their tendency to hallucinate the wrong usage of an API call. We release Gorilla, a finetuned LLaMA-based model that surpasses the performance of GPT-4 on writing API calls. When combined with a document retriever, Gorilla demonstrates a strong capability to adapt to test-time document changes, enabling flexible user updates or version changes. It also substantially mitigates the issue of hallucination, commonly encountered when prompting LLMs directly. To evaluate the model's ability, we introduce APIBench, a comprehensive dataset consisting of HuggingFace, TorchHub, and TensorHub APIs. The successful integration of the retrieval system with Gorilla demonstrates the potential for LLMs to use tools more accurately, keep up with frequently updated documentation, and consequently increase the reliability and applicability of their outputs. Gorilla's code, model, data, and demo are available at this https URL.",
-        "source_url": "https://arxiv.org/src/2305.15334"
-    },
-    {
-        "arxiv_id": "2307.16789",
-        "paper_id": "/arxiv/2307.16789",
-        "title": "ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs",
-        "authors": [
-            "Yujia Qin",
-            "Shihao Liang",
-            "Yining Ye",
-            "Kunlun Zhu",
-            "Lan Yan",
-            "Yaxi Lu",
-            "Yankai Lin",
-            "Xin Cong",
-            "Xiangru Tang",
-            "Bill Qian",
-            "Sihan Zhao",
-            "Lauren Hong",
-            "Runchu Tian",
-            "Ruobing Xie",
-            "Jie Zhou",
-            "Mark Gerstein",
-            "Dahai Li",
-            "Zhiyuan Liu",
-            "Maosong Sun"
-        ],
-        "summary": "Despite the advancements of open-source large language models (LLMs), e.g., LLaMA, they remain significantly limited in tool-use capabilities, i.e., using external tools (APIs) to fulfill human instructions. The reason is that current instruction tuning largely focuses on basic language tasks but ignores the tool-use domain. This is in contrast to the excellent tool-use capabilities of state-of-the-art (SOTA) closed-source LLMs, e.g., ChatGPT. To bridge this gap, we introduce ToolLLM, a general tool-use framework encompassing data construction, model training, and evaluation. We first present ToolBench, an instruction-tuning dataset for tool use, which is constructed automatically using ChatGPT. Specifically, the construction can be divided into three stages: (i) API collection: we collect 16,464 real-world RESTful APIs spanning 49 categories from RapidAPI Hub; (ii) instruction generation: we prompt ChatGPT to generate diverse instructions involving these APIs, covering both single-tool and multi-tool scenarios; (iii) solution path annotation: we use ChatGPT to search for a valid solution path (chain of API calls) for each instruction. To enhance the reasoning capabilities of LLMs, we develop a novel depth-first search-based decision tree algorithm. It enables LLMs to evaluate multiple reasoning traces and expand the search space. Moreover, to evaluate the tool-use capabilities of LLMs, we develop an automatic evaluator: ToolEval. Based on ToolBench, we fine-tune LLaMA to obtain an LLM ToolLLaMA, and equip it with a neural API retriever to recommend appropriate APIs for each instruction. Experiments show that ToolLLaMA demonstrates a remarkable ability to execute complex instructions and generalize to unseen APIs, and exhibits comparable performance to ChatGPT. Our ToolLLaMA also demonstrates strong zero-shot generalization ability in an out-of-distribution tool-use dataset: APIBench.",
-        "source_url": "https://arxiv.org/src/2307.16789"
-    },
-    {
-        "arxiv_id": "2305.10601",
-        "paper_id": "/arxiv/2305.10601",
-        "title": "Tree of Thoughts: Deliberate Problem Solving with Large Language Models",
-        "authors": [
-            "Shunyu Yao",
-            "Dian Yu",
-            "Jeffrey Zhao",
-            "Izhak Shafran",
-            "Thomas L. Griffiths",
-            "Yuan Cao",
-            "Karthik Narasimhan"
-        ],
-        "summary": "Language models are increasingly being deployed for general problem solving across a wide range of tasks, but are still confined to token-level, left-to-right decision-making processes during inference. This means they can fall short in tasks that require exploration, strategic lookahead, or where initial decisions play a pivotal role. To surmount these challenges, we introduce a new framework for language model inference, Tree of Thoughts (ToT), which generalizes over the popular Chain of Thought approach to prompting language models, and enables exploration over coherent units of text (thoughts) that serve as intermediate steps toward problem solving. ToT allows LMs to perform deliberate decision making by considering multiple different reasoning paths and self-evaluating choices to decide the next course of action, as well as looking ahead or backtracking when necessary to make global choices. Our experiments show that ToT significantly enhances language models' problem-solving abilities on three novel tasks requiring non-trivial planning or search: Game of 24, Creative Writing, and Mini Crosswords. For instance, in Game of 24, while GPT-4 with chain-of-thought prompting only solved 4% of tasks, our method achieved a success rate of 74%. Code repo with all prompts: this https URL.",
-        "source_url": "https://arxiv.org/src/2305.10601"
-    },
-    {
-        "arxiv_id": "2305.20050",
-        "paper_id": "/arxiv/2305.20050",
-        "title": "Let's Verify Step by Step",
-        "authors": [
-            "Hunter Lightman",
-            "Vineet Kosaraju",
-            "Yura Burda",
-            "Harri Edwards",
-            "Bowen Baker",
-            "Teddy Lee",
-            "Jan Leike",
-            "John Schulman",
-            "Ilya Sutskever",
-            "Karl Cobbe"
-        ],
-        "summary": "In recent years, large language models have greatly improved in their ability to perform complex multi-step reasoning. However, even state-of-the-art models still regularly produce logical mistakes. To train more reliable models, we can turn either to outcome supervision, which provides feedback for a final result, or process supervision, which provides feedback for each intermediate reasoning step. Given the importance of training reliable models, and given the high cost of human feedback, it is important to carefully compare the both methods. Recent work has already begun this comparison, but many questions still remain. We conduct our own investigation, finding that process supervision significantly outperforms outcome supervision for training models to solve problems from the challenging MATH dataset. Our process-supervised model solves 78% of problems from a representative subset of the MATH test set. Additionally, we show that active learning significantly improves the efficacy of process supervision. To support related research, we also release PRM800K, the complete dataset of 800,000 step-level human feedback labels used to train our best reward model.",
-        "source_url": "https://arxiv.org/src/2305.20050"
-    },
-    {
-        "arxiv_id": "2305.18290",
-        "paper_id": "/arxiv/2305.18290",
-        "title": "Direct Preference Optimization: Your Language Model is Secretly a Reward Model",
-        "authors": [
-            "Rafael Rafailov",
-            "Archit Sharma",
-            "Eric Mitchell",
-            "Stefano Ermon",
-            "Christopher D. Manning",
-            "Chelsea Finn"
-        ],
-        "summary": "While large-scale unsupervised language models (LMs) learn broad world knowledge and some reasoning skills, achieving precise control of their behavior is difficult due to the completely unsupervised nature of their training. Existing methods for gaining such steerability collect human labels of the relative quality of model generations and fine-tune the unsupervised LM to align with these preferences, often with reinforcement learning from human feedback (RLHF). However, RLHF is a complex and often unstable procedure, first fitting a reward model that reflects the human preferences, and then fine-tuning the large unsupervised LM using reinforcement learning to maximize this estimated reward without drifting too far from the original model. In this paper we introduce a new parameterization of the reward model in RLHF that enables extraction of the corresponding optimal policy in closed form, allowing us to solve the standard RLHF problem with only a simple classification loss. The resulting algorithm, which we call Direct Preference Optimization (DPO), is stable, performant, and computationally lightweight, eliminating the need for sampling from the LM during fine-tuning or performing significant hyperparameter tuning. Our experiments show that DPO can fine-tune LMs to align with human preferences as well as or better than existing methods. Notably, fine-tuning with DPO exceeds PPO-based RLHF in ability to control sentiment of generations, and matches or improves response quality in summarization and single-turn dialogue while being substantially simpler to implement and train.",
-        "source_url": "https://arxiv.org/src/2305.18290"
-    },
-    {
-        "arxiv_id": "2307.03172",
-        "paper_id": "/arxiv/2307.03172",
-        "title": "Lost in the Middle: How Language Models Use Long Contexts",
-        "authors": [
-            "Nelson F. Liu",
-            "Kevin Lin",
-            "John Hewitt",
-            "Ashwin Paranjape",
-            "Michele Bevilacqua",
-            "Fabio Petroni",
-            "Percy Liang"
-        ],
-        "summary": "While recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts. In particular, we observe that performance is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades when models must access relevant information in the middle of long contexts, even for explicitly long-context models. Our analysis provides a better understanding of how language models use their input context and provides new evaluation protocols for future long-context language models.",
-        "source_url": "https://arxiv.org/src/2307.03172"
-    },
-    {
-        "arxiv_id": "2310.06770",
-        "paper_id": "/arxiv/2310.06770",
-        "title": "SWE-bench: Can Language Models Resolve Real-World GitHub Issues?",
-        "authors": [
-            "Carlos E. Jimenez",
-            "John Yang",
-            "Alexander Wettig",
-            "Shunyu Yao",
-            "Kexin Pei",
-            "Ofir Press",
-            "Karthik Narasimhan"
-        ],
-        "summary": "Language models have outpaced our ability to evaluate them effectively, but for their future development it is essential to study the frontier of their capabilities. We find real-world software engineering to be a rich, sustainable, and challenging testbed for evaluating the next generation of language models. To this end, we introduce SWE-bench, an evaluation framework consisting of $2,294$ software engineering problems drawn from real GitHub issues and corresponding pull requests across $12$ popular Python repositories. Given a codebase along with a description of an issue to be resolved, a language model is tasked with editing the codebase to address the issue. Resolving issues in SWE-bench frequently requires understanding and coordinating changes across multiple functions, classes, and even files simultaneously, calling for models to interact with execution environments, process extremely long contexts and perform complex reasoning that goes far beyond traditional code generation tasks. Our evaluations show that both state-of-the-art proprietary models and our fine-tuned model SWE-Llama can resolve only the simplest issues. The best-performing model, Claude 2, is able to solve a mere $1.96$% of the issues. Advances on SWE-bench represent steps towards LMs that are more practical, intelligent, and autonomous.",
-        "source_url": "https://arxiv.org/src/2310.06770"
-    },
-    {
-        "arxiv_id": "2312.00752",
-        "paper_id": "/arxiv/2312.00752",
-        "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
-        "authors": [
-            "Albert Gu",
-            "Tri Dao"
-        ],
-        "summary": "Foundation models, now powering most of the exciting applications in deep learning, are almost universally based on the Transformer architecture and its core attention module. Many subquadratic-time architectures such as linear attention, gated convolution and recurrent models, and structured state space models (SSMs) have been developed to address Transformers' computational inefficiency on long sequences, but they have not performed as well as attention on important modalities such as language. We identify that a key weakness of such models is their inability to perform content-based reasoning, and make several improvements. First, simply letting the SSM parameters be functions of the input addresses their weakness with discrete modalities, allowing the model to selectively propagate or forget information along the sequence length dimension depending on the current token. Second, even though this change prevents the use of efficient convolutions, we design a hardware-aware parallel algorithm in recurrent mode. We integrate these selective SSMs into a simplified end-to-end neural network architecture without attention or even MLP blocks (Mamba). Mamba enjoys fast inference (5$\\times$ higher throughput than Transformers) and linear scaling in sequence length, and its performance improves on real data up to million-length sequences. As a general sequence model backbone, Mamba achieves state-of-the-art performance across several modalities such as language, audio, and genomics. On language modeling, our Mamba-3B model outperforms Transformers of the same size and matches Transformers twice its size, both in pretraining and downstream evaluation.",
-        "source_url": "https://arxiv.org/src/2312.00752"
-    },
-    {
-        "arxiv_id": "2402.01030",
-        "paper_id": "/arxiv/2402.01030",
-        "title": "Executable Code Actions Elicit Better LLM Agents",
-        "authors": [
-            "Xingyao Wang",
-            "Yangyi Chen",
-            "Lifan Yuan",
-            "Yizhe Zhang",
-            "Yunzhu Li",
-            "Hao Peng",
-            "Heng Ji"
-        ],
-        "summary": "Large Language Model (LLM) agents, capable of performing a broad range of actions, such as invoking tools and controlling robots, show great potential in tackling real-world challenges. LLM agents are typically prompted to produce actions by generating JSON or text in a pre-defined format, which is usually limited by constrained action space (e.g., the scope of pre-defined tools) and restricted flexibility (e.g., inability to compose multiple tools). This work proposes to use executable Python code to consolidate LLM agents' actions into a unified action space (CodeAct). Integrated with a Python interpreter, CodeAct can execute code actions and dynamically revise prior actions or emit new actions upon new observations through multi-turn interactions. Our extensive analysis of 17 LLMs on API-Bank and a newly curated benchmark shows that CodeAct outperforms widely used alternatives (up to 20% higher success rate). The encouraging performance of CodeAct motivates us to build an open-source LLM agent that interacts with environments by executing interpretable code and collaborates with users using natural language. To this end, we collect an instruction-tuning dataset CodeActInstruct that consists of 7k multi-turn interactions using CodeAct. We show that it can be used with existing data to improve models in agent-oriented tasks without compromising their general capability. CodeActAgent, finetuned from Llama2 and Mistral, is integrated with Python interpreter and uniquely tailored to perform sophisticated tasks (e.g., model training) using existing libraries and autonomously self-debug.",
-        "source_url": "https://arxiv.org/src/2402.01030"
-    },
-    {
-        "arxiv_id": "2405.15793",
-        "paper_id": "/arxiv/2405.15793",
-        "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
-        "authors": [
-            "John Yang",
-            "Carlos E. Jimenez",
-            "Alexander Wettig",
-            "Kilian Lieret",
-            "Shunyu Yao",
-            "Karthik Narasimhan",
-            "Ofir Press"
-        ],
-        "summary": "Language model (LM) agents are increasingly being used to automate complicated tasks in digital environments. Just as humans benefit from powerful software applications, such as integrated development environments, for complex tasks like software engineering, we posit that LM agents represent a new category of end users with their own needs and abilities, and would benefit from specially-built interfaces to the software they use. We investigate how interface design affects the performance of language model agents. As a result of this exploration, we introduce SWE-agent: a system that facilitates LM agents to autonomously use computers to solve software engineering tasks. SWE-agent's custom agent-computer interface (ACI) significantly enhances an agent's ability to create and edit code files, navigate entire repositories, and execute tests and other programs. We evaluate SWE-agent on SWE-bench and HumanEvalFix, achieving state-of-the-art performance on both with a pass@1 rate of 12.5% and 87.7%, respectively, far exceeding the previous state-of-the-art achieved with non-interactive LMs. Finally, we provide insight on how the design of the ACI can impact agents' behavior and performance.",
-        "source_url": "https://arxiv.org/src/2405.15793"
-    },
-    {
-        "arxiv_id": "2501.12948",
-        "paper_id": "/arxiv/2501.12948",
-        "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
-        "authors": [
-            "DeepSeek-AI"
-        ],
-        "summary": "General reasoning represents a long-standing and formidable challenge in artificial intelligence. Recent breakthroughs, exemplified by large language models (LLMs) and chain-of-thought prompting, have achieved considerable success on foundational reasoning tasks. However, this success is heavily contingent upon extensive human-annotated demonstrations, and models' capabilities are still insufficient for more complex problems. Here we show that the reasoning abilities of LLMs can be incentivized through pure reinforcement learning (RL), obviating the need for human-labeled reasoning trajectories. The proposed RL framework facilitates the emergent development of advanced reasoning patterns, such as self-reflection, verification, and dynamic strategy adaptation. Consequently, the trained model achieves superior performance on verifiable tasks such as mathematics, coding competitions, and STEM fields, surpassing its counterparts trained via conventional supervised learning on human demonstrations. Moreover, the emergent reasoning patterns exhibited by these large-scale models can be systematically harnessed to guide and enhance the reasoning capabilities of smaller models.",
-        "source_url": "https://arxiv.org/src/2501.12948"
-    }
+  {
+    "arxiv_id": "1706.03762",
+    "paper_id": "/arxiv/1706.03762",
+    "title": "Attention Is All You Need",
+    "authors": [
+      "Ashish Vaswani",
+      "Noam Shazeer",
+      "Niki Parmar",
+      "Jakob Uszkoreit",
+      "Llion Jones",
+      "Aidan N. Gomez",
+      "Lukasz Kaiser",
+      "Illia Polosukhin"
+    ],
+    "summary": "The dominant sequence transduction models are based on complex recurrent or convolutional neural networks in an encoder-decoder configuration. The best performing models also connect the encoder and decoder through an attention mechanism. We propose a new simple network architecture, the Transformer, based solely on attention mechanisms, dispensing with recurrence and convolutions entirely. Experiments on two machine translation tasks show these models to be superior in quality while being more parallelizable and requiring significantly less time to train. Our model achieves 28.4 BLEU on the WMT 2014 English-to-German translation task, improving over the existing best results, including ensembles by over 2 BLEU. On the WMT 2014 English-to-French translation task, our model establishes a new single-model state-of-the-art BLEU score of 41.8 after training for 3.5 days on eight GPUs, a small fraction of the training costs of the best models from the literature. We show that the Transformer generalizes well to other tasks by applying it successfully to English constituency parsing both with large and limited training data.",
+    "source_url": "https://arxiv.org/src/1706.03762"
+  },
+  {
+    "arxiv_id": "2001.08361",
+    "paper_id": "/arxiv/2001.08361",
+    "title": "Scaling Laws for Neural Language Models",
+    "authors": [
+      "Jared Kaplan",
+      "Sam McCandlish",
+      "Tom Henighan",
+      "Tom B. Brown",
+      "Benjamin Chess",
+      "Rewon Child",
+      "Scott Gray",
+      "Alec Radford",
+      "Jeffrey Wu",
+      "Dario Amodei"
+    ],
+    "summary": "We study empirical scaling laws for language model performance on the cross-entropy loss. The loss scales as a power-law with model size, dataset size, and the amount of compute used for training, with some trends spanning more than seven orders of magnitude. Other architectural details such as network width or depth have minimal effects within a wide range. Simple equations govern the dependence of overfitting on model/dataset size and the dependence of training speed on model size. These relationships allow us to determine the optimal allocation of a fixed compute budget. Larger models are significantly more sample-efficient, such that optimally compute-efficient training involves training very large models on a relatively modest amount of data and stopping significantly before convergence.",
+    "source_url": "https://arxiv.org/src/2001.08361"
+  },
+  {
+    "arxiv_id": "2005.14165",
+    "paper_id": "/arxiv/2005.14165",
+    "title": "Language Models are Few-Shot Learners",
+    "authors": [
+      "Tom B. Brown",
+      "Benjamin Mann",
+      "Nick Ryder",
+      "Melanie Subbiah",
+      "Jared Kaplan",
+      "Prafulla Dhariwal",
+      "Arvind Neelakantan",
+      "Pranav Shyam",
+      "Girish Sastry",
+      "Amanda Askell",
+      "Sandhini Agarwal",
+      "Ariel Herbert-Voss",
+      "Gretchen Krueger",
+      "Tom Henighan",
+      "Rewon Child",
+      "Aditya Ramesh",
+      "Daniel M. Ziegler",
+      "Jeffrey Wu",
+      "Clemens Winter",
+      "Christopher Hesse",
+      "Mark Chen",
+      "Eric Sigler",
+      "Mateusz Litwin",
+      "Scott Gray",
+      "Benjamin Chess",
+      "Jack Clark",
+      "Christopher Berner",
+      "Sam McCandlish",
+      "Alec Radford",
+      "Ilya Sutskever",
+      "Dario Amodei"
+    ],
+    "summary": "Recent work has demonstrated substantial gains on many NLP tasks and benchmarks by pre-training on a large corpus of text followed by fine-tuning on a specific task. While typically task-agnostic in architecture, this method still requires task-specific fine-tuning datasets of thousands or tens of thousands of examples. By contrast, humans can generally perform a new language task from only a few examples or from simple instructions - something which current NLP systems still largely struggle to do. Here we show that scaling up language models greatly improves task-agnostic, few-shot performance, sometimes even reaching competitiveness with prior state-of-the-art fine-tuning approaches. Specifically, we train GPT-3, an autoregressive language model with 175 billion parameters, 10x more than any previous non-sparse language model, and test its performance in the few-shot setting. For all tasks, GPT-3 is applied without any gradient updates or fine-tuning, with tasks and few-shot demonstrations specified purely via text interaction with the model. GPT-3 achieves strong performance on many NLP datasets, including translation, question-answering, and cloze tasks, as well as several tasks that require on-the-fly reasoning or domain adaptation, such as unscrambling words, using a novel word in a sentence, or performing 3-digit arithmetic. At the same time, we also identify some datasets where GPT-3's few-shot learning still struggles, as well as some datasets where GPT-3 faces methodological issues related to training on large web corpora. Finally, we find that GPT-3 can generate samples of news articles which human evaluators have difficulty distinguishing from articles written by humans. We discuss broader societal impacts of this finding and of GPT-3 in general.",
+    "source_url": "https://arxiv.org/src/2005.14165"
+  },
+  {
+    "arxiv_id": "2005.11401",
+    "paper_id": "/arxiv/2005.11401",
+    "title": "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks",
+    "authors": [
+      "Patrick Lewis",
+      "Ethan Perez",
+      "Aleksandra Piktus",
+      "Fabio Petroni",
+      "Vladimir Karpukhin",
+      "Naman Goyal",
+      "Heinrich Küttler",
+      "Mike Lewis",
+      "Wen-tau Yih",
+      "Tim Rocktäschel",
+      "Sebastian Riedel",
+      "Douwe Kiela"
+    ],
+    "summary": "Large pre-trained language models have been shown to store factual knowledge in their parameters, and achieve state-of-the-art results when fine-tuned on downstream NLP tasks. However, their ability to access and precisely manipulate knowledge is still limited, and hence on knowledge-intensive tasks, their performance lags behind task-specific architectures. Additionally, providing provenance for their decisions and updating their world knowledge remain open research problems. Pre-trained models with a differentiable access mechanism to explicit non-parametric memory can overcome this issue, but have so far been only investigated for extractive downstream tasks. We explore a general-purpose fine-tuning recipe for retrieval-augmented generation (RAG) -- models which combine pre-trained parametric and non-parametric memory for language generation. We introduce RAG models where the parametric memory is a pre-trained seq2seq model and the non-parametric memory is a dense vector index of Wikipedia, accessed with a pre-trained neural retriever. We compare two RAG formulations, one which conditions on the same retrieved passages across the whole generated sequence, the other can use different passages per token. We fine-tune and evaluate our models on a wide range of knowledge-intensive NLP tasks and set the state-of-the-art on three open domain QA tasks, outperforming parametric seq2seq models and task-specific retrieve-and-extract architectures. For language generation tasks, we find that RAG models generate more specific, diverse and factual language than a state-of-the-art parametric-only seq2seq baseline.",
+    "source_url": "https://arxiv.org/src/2005.11401"
+  },
+  {
+    "arxiv_id": "2103.00020",
+    "paper_id": "/arxiv/2103.00020",
+    "title": "Learning Transferable Visual Models From Natural Language Supervision",
+    "authors": [
+      "Alec Radford",
+      "Jong Wook Kim",
+      "Chris Hallacy",
+      "Aditya Ramesh",
+      "Gabriel Goh",
+      "Sandhini Agarwal",
+      "Girish Sastry",
+      "Amanda Askell",
+      "Pamela Mishkin",
+      "Jack Clark",
+      "Gretchen Krueger",
+      "Ilya Sutskever"
+    ],
+    "summary": "State-of-the-art computer vision systems are trained to predict a fixed set of predetermined object categories. This restricted form of supervision limits their generality and usability since additional labeled data is needed to specify any other visual concept. Learning directly from raw text about images is a promising alternative which leverages a much broader source of supervision. We demonstrate that the simple pre-training task of predicting which caption goes with which image is an efficient and scalable way to learn SOTA image representations from scratch on a dataset of 400 million (image, text) pairs collected from the internet. After pre-training, natural language is used to reference learned visual concepts (or describe new ones) enabling zero-shot transfer of the model to downstream tasks. We study the performance of this approach by benchmarking on over 30 different existing computer vision datasets, spanning tasks such as OCR, action recognition in videos, geo-localization, and many types of fine-grained object classification. The model transfers non-trivially to most tasks and is often competitive with a fully supervised baseline without the need for any dataset specific training. For instance, we match the accuracy of the original ResNet-50 on ImageNet zero-shot without needing to use any of the 1.28 million training examples it was trained on. We release our code and pre-trained model weights at this https URL.",
+    "source_url": "https://arxiv.org/src/2103.00020"
+  },
+  {
+    "arxiv_id": "2106.09685",
+    "paper_id": "/arxiv/2106.09685",
+    "title": "LoRA: Low-Rank Adaptation of Large Language Models",
+    "authors": [
+      "Edward J. Hu",
+      "Yelong Shen",
+      "Phillip Wallis",
+      "Zeyuan Allen-Zhu",
+      "Yuanzhi Li",
+      "Shean Wang",
+      "Lu Wang",
+      "Weizhu Chen"
+    ],
+    "summary": "An important paradigm of natural language processing consists of large-scale pre-training on general domain data and adaptation to particular tasks or domains. As we pre-train larger models, full fine-tuning, which retrains all model parameters, becomes less feasible. Using GPT-3 175B as an example -- deploying independent instances of fine-tuned models, each with 175B parameters, is prohibitively expensive. We propose Low-Rank Adaptation, or LoRA, which freezes the pre-trained model weights and injects trainable rank decomposition matrices into each layer of the Transformer architecture, greatly reducing the number of trainable parameters for downstream tasks. Compared to GPT-3 175B fine-tuned with Adam, LoRA can reduce the number of trainable parameters by 10,000 times and the GPU memory requirement by 3 times. LoRA performs on-par or better than fine-tuning in model quality on RoBERTa, DeBERTa, GPT-2, and GPT-3, despite having fewer trainable parameters, a higher training throughput, and, unlike adapters, no additional inference latency. We also provide an empirical investigation into rank-deficiency in language model adaptation, which sheds light on the efficacy of LoRA. We release a package that facilitates the integration of LoRA with PyTorch models and provide our implementations and model checkpoints for RoBERTa, DeBERTa, and GPT-2 at this https URL.",
+    "source_url": "https://arxiv.org/src/2106.09685"
+  },
+  {
+    "arxiv_id": "2112.10752",
+    "paper_id": "/arxiv/2112.10752",
+    "title": "High-Resolution Image Synthesis with Latent Diffusion Models",
+    "authors": [
+      "Robin Rombach",
+      "Andreas Blattmann",
+      "Dominik Lorenz",
+      "Patrick Esser",
+      "Björn Ommer"
+    ],
+    "summary": "By decomposing the image formation process into a sequential application of denoising autoencoders, diffusion models (DMs) achieve state-of-the-art synthesis results on image data and beyond. Additionally, their formulation allows for a guiding mechanism to control the image generation process without retraining. However, since these models typically operate directly in pixel space, optimization of powerful DMs often consumes hundreds of GPU days and inference is expensive due to sequential evaluations. To enable DM training on limited computational resources while retaining their quality and flexibility, we apply them in the latent space of powerful pretrained autoencoders. In contrast to previous work, training diffusion models on such a representation allows for the first time to reach a near-optimal point between complexity reduction and detail preservation, greatly boosting visual fidelity. By introducing cross-attention layers into the model architecture, we turn diffusion models into powerful and flexible generators for general conditioning inputs such as text or bounding boxes and high-resolution synthesis becomes possible in a convolutional manner. Our latent diffusion models (LDMs) achieve a new state of the art for image inpainting and highly competitive performance on various tasks, including unconditional image generation, semantic scene synthesis, and super-resolution, while significantly reducing computational requirements compared to pixel-based DMs. Code is available at this https URL .",
+    "source_url": "https://arxiv.org/src/2112.10752"
+  },
+  {
+    "arxiv_id": "2201.11903",
+    "paper_id": "/arxiv/2201.11903",
+    "title": "Chain-of-Thought Prompting Elicits Reasoning in Large Language Models",
+    "authors": [
+      "Jason Wei",
+      "Xuezhi Wang",
+      "Dale Schuurmans",
+      "Maarten Bosma",
+      "Brian Ichter",
+      "Fei Xia",
+      "Ed Chi",
+      "Quoc Le",
+      "Denny Zhou"
+    ],
+    "summary": "We explore how generating a chain of thought -- a series of intermediate reasoning steps -- significantly improves the ability of large language models to perform complex reasoning. In particular, we show how such reasoning abilities emerge naturally in sufficiently large language models via a simple method called chain of thought prompting, where a few chain of thought demonstrations are provided as exemplars in prompting. Experiments on three large language models show that chain of thought prompting improves performance on a range of arithmetic, commonsense, and symbolic reasoning tasks. The empirical gains can be striking. For instance, prompting a 540B-parameter language model with just eight chain of thought exemplars achieves state of the art accuracy on the GSM8K benchmark of math word problems, surpassing even finetuned GPT-3 with a verifier.",
+    "source_url": "https://arxiv.org/src/2201.11903"
+  },
+  {
+    "arxiv_id": "2203.11171",
+    "paper_id": "/arxiv/2203.11171",
+    "title": "Self-Consistency Improves Chain of Thought Reasoning in Language Models",
+    "authors": [
+      "Xuezhi Wang",
+      "Jason Wei",
+      "Dale Schuurmans",
+      "Quoc Le",
+      "Ed Chi",
+      "Sharan Narang",
+      "Aakanksha Chowdhery",
+      "Denny Zhou"
+    ],
+    "summary": "Chain-of-thought prompting combined with pre-trained large language models has achieved encouraging results on complex reasoning tasks. In this paper, we propose a new decoding strategy, self-consistency, to replace the naive greedy decoding used in chain-of-thought prompting. It first samples a diverse set of reasoning paths instead of only taking the greedy one, and then selects the most consistent answer by marginalizing out the sampled reasoning paths. Self-consistency leverages the intuition that a complex reasoning problem typically admits multiple different ways of thinking leading to its unique correct answer. Our extensive empirical evaluation shows that self-consistency boosts the performance of chain-of-thought prompting with a striking margin on a range of popular arithmetic and commonsense reasoning benchmarks, including GSM8K (+17.9%), SVAMP (+11.0%), AQuA (+12.2%), StrategyQA (+6.4%) and ARC-challenge (+3.9%).",
+    "source_url": "https://arxiv.org/src/2203.11171"
+  },
+  {
+    "arxiv_id": "2203.14465",
+    "paper_id": "/arxiv/2203.14465",
+    "title": "STaR: Bootstrapping Reasoning With Reasoning",
+    "authors": ["Eric Zelikman", "Yuhuai Wu", "Jesse Mu", "Noah D. Goodman"],
+    "summary": "Generating step-by-step \"chain-of-thought\" rationales improves language model performance on complex reasoning tasks like mathematics or commonsense question-answering. However, inducing language model rationale generation currently requires either constructing massive rationale datasets or sacrificing accuracy by using only few-shot inference. We propose a technique to iteratively leverage a small number of rationale examples and a large dataset without rationales, to bootstrap the ability to perform successively more complex reasoning. This technique, the \"Self-Taught Reasoner\" (STaR), relies on a simple loop: generate rationales to answer many questions, prompted with a few rationale examples; if the generated answers are wrong, try again to generate a rationale given the correct answer; fine-tune on all the rationales that ultimately yielded correct answers; repeat. We show that STaR significantly improves performance on multiple datasets compared to a model fine-tuned to directly predict final answers, and performs comparably to fine-tuning a 30$\\times$ larger state-of-the-art language model on CommensenseQA. Thus, STaR lets a model improve itself by learning from its own generated reasoning.",
+    "source_url": "https://arxiv.org/src/2203.14465"
+  },
+  {
+    "arxiv_id": "2203.02155",
+    "paper_id": "/arxiv/2203.02155",
+    "title": "Training language models to follow instructions with human feedback",
+    "authors": [
+      "Long Ouyang",
+      "Jeff Wu",
+      "Xu Jiang",
+      "Diogo Almeida",
+      "Carroll L. Wainwright",
+      "Pamela Mishkin",
+      "Chong Zhang",
+      "Sandhini Agarwal",
+      "Katarina Slama",
+      "Alex Ray",
+      "John Schulman",
+      "Jacob Hilton",
+      "Fraser Kelton",
+      "Luke Miller",
+      "Maddie Simens",
+      "Amanda Askell",
+      "Peter Welinder",
+      "Paul Christiano",
+      "Jan Leike",
+      "Ryan Lowe"
+    ],
+    "summary": "Making language models bigger does not inherently make them better at following a user's intent. For example, large language models can generate outputs that are untruthful, toxic, or simply not helpful to the user. In other words, these models are not aligned with their users. In this paper, we show an avenue for aligning language models with user intent on a wide range of tasks by fine-tuning with human feedback. Starting with a set of labeler-written prompts and prompts submitted through the OpenAI API, we collect a dataset of labeler demonstrations of the desired model behavior, which we use to fine-tune GPT-3 using supervised learning. We then collect a dataset of rankings of model outputs, which we use to further fine-tune this supervised model using reinforcement learning from human feedback. We call the resulting models InstructGPT. In human evaluations on our prompt distribution, outputs from the 1.3B parameter InstructGPT model are preferred to outputs from the 175B GPT-3, despite having 100x fewer parameters. Moreover, InstructGPT models show improvements in truthfulness and reductions in toxic output generation while having minimal performance regressions on public NLP datasets. Even though InstructGPT still makes simple mistakes, our results show that fine-tuning with human feedback is a promising direction for aligning language models with human intent.",
+    "source_url": "https://arxiv.org/src/2203.02155"
+  },
+  {
+    "arxiv_id": "2203.15556",
+    "paper_id": "/arxiv/2203.15556",
+    "title": "Training Compute-Optimal Large Language Models",
+    "authors": [
+      "Jordan Hoffmann",
+      "Sebastian Borgeaud",
+      "Arthur Mensch",
+      "Elena Buchatskaya",
+      "Trevor Cai",
+      "Eliza Rutherford",
+      "Diego de Las Casas",
+      "Lisa Anne Hendricks",
+      "Johannes Welbl",
+      "Aidan Clark",
+      "Tom Hennigan",
+      "Eric Noland",
+      "Katie Millican",
+      "George van den Driessche",
+      "Bogdan Damoc",
+      "Aurelia Guy",
+      "Simon Osindero",
+      "Karen Simonyan",
+      "Erich Elsen",
+      "Jack W. Rae",
+      "Oriol Vinyals",
+      "Laurent Sifre"
+    ],
+    "summary": "We investigate the optimal model size and number of tokens for training a transformer language model under a given compute budget. We find that current large language models are significantly undertrained, a consequence of the recent focus on scaling language models whilst keeping the amount of training data constant. By training over 400 language models ranging from 70 million to over 16 billion parameters on 5 to 500 billion tokens, we find that for compute-optimal training, the model size and the number of training tokens should be scaled equally: for every doubling of model size the number of training tokens should also be doubled. We test this hypothesis by training a predicted compute-optimal model, Chinchilla, that uses the same compute budget as Gopher but with 70B parameters and 4$\\times$ more more data. Chinchilla uniformly and significantly outperforms Gopher (280B), GPT-3 (175B), Jurassic-1 (178B), and Megatron-Turing NLG (530B) on a large range of downstream evaluation tasks. This also means that Chinchilla uses substantially less compute for fine-tuning and inference, greatly facilitating downstream usage. As a highlight, Chinchilla reaches a state-of-the-art average accuracy of 67.5% on the MMLU benchmark, greater than a 7% improvement over Gopher.",
+    "source_url": "https://arxiv.org/src/2203.15556"
+  },
+  {
+    "arxiv_id": "2205.00445",
+    "paper_id": "/arxiv/2205.00445",
+    "title": "MRKL Systems: A modular, neuro-symbolic architecture that combines large language models, external knowledge sources and discrete reasoning",
+    "authors": [
+      "Ehud Karpas",
+      "Omri Abend",
+      "Yonatan Belinkov",
+      "Barak Lenz",
+      "Opher Lieber",
+      "Nir Ratner",
+      "Yoav Shoham",
+      "Hofit Bata",
+      "Yoav Levine",
+      "Kevin Leyton-Brown",
+      "Dor Muhlgay",
+      "Noam Rozen",
+      "Erez Schwartz",
+      "Gal Shachaf",
+      "Shai Shalev-Shwartz",
+      "Amnon Shashua",
+      "Moshe Tenenholtz"
+    ],
+    "summary": "Huge language models (LMs) have ushered in a new era for AI, serving as a gateway to natural-language-based knowledge tasks. Although an essential element of modern AI, LMs are also inherently limited in a number of ways. We discuss these limitations and how they can be avoided by adopting a systems approach. Conceptualizing the challenge as one that involves knowledge and reasoning in addition to linguistic processing, we define a flexible architecture with multiple neural models, complemented by discrete knowledge and reasoning modules. We describe this neuro-symbolic architecture, dubbed the Modular Reasoning, Knowledge and Language (MRKL, pronounced \"miracle\") system, some of the technical challenges in implementing it, and Jurassic-X, AI21 Labs' MRKL system implementation.",
+    "source_url": "https://arxiv.org/src/2205.00445"
+  },
+  {
+    "arxiv_id": "2210.03629",
+    "paper_id": "/arxiv/2210.03629",
+    "title": "ReAct: Synergizing Reasoning and Acting in Language Models",
+    "authors": [
+      "Shunyu Yao",
+      "Jeffrey Zhao",
+      "Dian Yu",
+      "Nan Du",
+      "Izhak Shafran",
+      "Karthik Narasimhan",
+      "Yuan Cao"
+    ],
+    "summary": "While large language models (LLMs) have demonstrated impressive capabilities across tasks in language understanding and interactive decision making, their abilities for reasoning (e.g. chain-of-thought prompting) and acting (e.g. action plan generation) have primarily been studied as separate topics. In this paper, we explore the use of LLMs to generate both reasoning traces and task-specific actions in an interleaved manner, allowing for greater synergy between the two: reasoning traces help the model induce, track, and update action plans as well as handle exceptions, while actions allow it to interface with external sources, such as knowledge bases or environments, to gather additional information. We apply our approach, named ReAct, to a diverse set of language and decision making tasks and demonstrate its effectiveness over state-of-the-art baselines, as well as improved human interpretability and trustworthiness over methods without reasoning or acting components. Concretely, on question answering (HotpotQA) and fact verification (Fever), ReAct overcomes issues of hallucination and error propagation prevalent in chain-of-thought reasoning by interacting with a simple Wikipedia API, and generates human-like task-solving trajectories that are more interpretable than baselines without reasoning traces. On two interactive decision making benchmarks (ALFWorld and WebShop), ReAct outperforms imitation and reinforcement learning methods by an absolute success rate of 34% and 10% respectively, while being prompted with only one or two in-context examples. Project site with code: this https URL",
+    "source_url": "https://arxiv.org/src/2210.03629"
+  },
+  {
+    "arxiv_id": "2211.10435",
+    "paper_id": "/arxiv/2211.10435",
+    "title": "PAL: Program-aided Language Models",
+    "authors": [
+      "Luyu Gao",
+      "Aman Madaan",
+      "Shuyan Zhou",
+      "Uri Alon",
+      "Pengfei Liu",
+      "Yiming Yang",
+      "Jamie Callan",
+      "Graham Neubig"
+    ],
+    "summary": "Large language models (LLMs) have recently demonstrated an impressive ability to perform arithmetic and symbolic reasoning tasks, when provided with a few examples at test time (\"few-shot prompting\"). Much of this success can be attributed to prompting methods such as \"chain-of-thought'', which employ LLMs for both understanding the problem description by decomposing it into steps, as well as solving each step of the problem. While LLMs seem to be adept at this sort of step-by-step decomposition, LLMs often make logical and arithmetic mistakes in the solution part, even when the problem is decomposed correctly. In this paper, we present Program-Aided Language models (PAL): a novel approach that uses the LLM to read natural language problems and generate programs as the intermediate reasoning steps, but offloads the solution step to a runtime such as a Python interpreter. With PAL, decomposing the natural language problem into runnable steps remains the only learning task for the LLM, while solving is delegated to the interpreter. We demonstrate this synergy between a neural LLM and a symbolic interpreter across 13 mathematical, symbolic, and algorithmic reasoning tasks from BIG-Bench Hard and other benchmarks. In all these natural language reasoning tasks, generating code using an LLM and reasoning using a Python interpreter leads to more accurate results than much larger models. For example, PAL using Codex achieves state-of-the-art few-shot accuracy on the GSM8K benchmark of math word problems, surpassing PaLM-540B which uses chain-of-thought by absolute 15% top-1. Our code and data are publicly available at this http URL .",
+    "source_url": "https://arxiv.org/src/2211.10435"
+  },
+  {
+    "arxiv_id": "2205.14135",
+    "paper_id": "/arxiv/2205.14135",
+    "title": "FlashAttention: Fast and Memory-Efficient Exact Attention with IO-Awareness",
+    "authors": ["Tri Dao", "Daniel Y. Fu", "Stefano Ermon", "Atri Rudra", "Christopher Ré"],
+    "summary": "Transformers are slow and memory-hungry on long sequences, since the time and memory complexity of self-attention are quadratic in sequence length. Approximate attention methods have attempted to address this problem by trading off model quality to reduce the compute complexity, but often do not achieve wall-clock speedup. We argue that a missing principle is making attention algorithms IO-aware -- accounting for reads and writes between levels of GPU memory. We propose FlashAttention, an IO-aware exact attention algorithm that uses tiling to reduce the number of memory reads/writes between GPU high bandwidth memory (HBM) and GPU on-chip SRAM. We analyze the IO complexity of FlashAttention, showing that it requires fewer HBM accesses than standard attention, and is optimal for a range of SRAM sizes. We also extend FlashAttention to block-sparse attention, yielding an approximate attention algorithm that is faster than any existing approximate attention method. FlashAttention trains Transformers faster than existing baselines: 15% end-to-end wall-clock speedup on BERT-large (seq. length 512) compared to the MLPerf 1.1 training speed record, 3$\\times$ speedup on GPT-2 (seq. length 1K), and 2.4$\\times$ speedup on long-range arena (seq. length 1K-4K). FlashAttention and block-sparse FlashAttention enable longer context in Transformers, yielding higher quality models (0.7 better perplexity on GPT-2 and 6.4 points of lift on long-document classification) and entirely new capabilities: the first Transformers to achieve better-than-chance performance on the Path-X challenge (seq. length 16K, 61.4% accuracy) and Path-256 (seq. length 64K, 63.1% accuracy).",
+    "source_url": "https://arxiv.org/src/2205.14135"
+  },
+  {
+    "arxiv_id": "2302.13971",
+    "paper_id": "/arxiv/2302.13971",
+    "title": "LLaMA: Open and Efficient Foundation Language Models",
+    "authors": [
+      "Hugo Touvron",
+      "Thibaut Lavril",
+      "Gautier Izacard",
+      "Xavier Martinet",
+      "Marie-Anne Lachaux",
+      "Timothée Lacroix",
+      "Baptiste Rozière",
+      "Naman Goyal",
+      "Eric Hambro",
+      "Faisal Azhar",
+      "Aurelien Rodriguez",
+      "Armand Joulin",
+      "Edouard Grave",
+      "Guillaume Lample"
+    ],
+    "summary": "We introduce LLaMA, a collection of foundation language models ranging from 7B to 65B parameters. We train our models on trillions of tokens, and show that it is possible to train state-of-the-art models using publicly available datasets exclusively, without resorting to proprietary and inaccessible datasets. In particular, LLaMA-13B outperforms GPT-3 (175B) on most benchmarks, and LLaMA-65B is competitive with the best models, Chinchilla-70B and PaLM-540B. We release all our models to the research community.",
+    "source_url": "https://arxiv.org/src/2302.13971"
+  },
+  {
+    "arxiv_id": "2302.04761",
+    "paper_id": "/arxiv/2302.04761",
+    "title": "Toolformer: Language Models Can Teach Themselves to Use Tools",
+    "authors": [
+      "Timo Schick",
+      "Jane Dwivedi-Yu",
+      "Roberto Dessì",
+      "Roberta Raileanu",
+      "Maria Lomeli",
+      "Luke Zettlemoyer",
+      "Nicola Cancedda",
+      "Thomas Scialom"
+    ],
+    "summary": "Language models (LMs) exhibit remarkable abilities to solve new tasks from just a few examples or textual instructions, especially at scale. They also, paradoxically, struggle with basic functionality, such as arithmetic or factual lookup, where much simpler and smaller models excel. In this paper, we show that LMs can teach themselves to use external tools via simple APIs and achieve the best of both worlds. We introduce Toolformer, a model trained to decide which APIs to call, when to call them, what arguments to pass, and how to best incorporate the results into future token prediction. This is done in a self-supervised way, requiring nothing more than a handful of demonstrations for each API. We incorporate a range of tools, including a calculator, a Q\\&A system, two different search engines, a translation system, and a calendar. Toolformer achieves substantially improved zero-shot performance across a variety of downstream tasks, often competitive with much larger models, without sacrificing its core language modeling abilities.",
+    "source_url": "https://arxiv.org/src/2302.04761"
+  },
+  {
+    "arxiv_id": "2304.08244",
+    "paper_id": "/arxiv/2304.08244",
+    "title": "API-Bank: A Comprehensive Benchmark for Tool-Augmented LLMs",
+    "authors": [
+      "Minghao Li",
+      "Yingxiu Zhao",
+      "Bowen Yu",
+      "Feifan Song",
+      "Hangyu Li",
+      "Haiyang Yu",
+      "Zhoujun Li",
+      "Fei Huang",
+      "Yongbin Li"
+    ],
+    "summary": "Recent research has demonstrated that Large Language Models (LLMs) can enhance their capabilities by utilizing external tools. However, three pivotal questions remain unanswered: (1) How effective are current LLMs in utilizing tools? (2) How can we enhance LLMs' ability to utilize tools? (3) What obstacles need to be overcome to leverage tools? To address these questions, we introduce API-Bank, a groundbreaking benchmark, specifically designed for tool-augmented LLMs. For the first question, we develop a runnable evaluation system consisting of 73 API tools. We annotate 314 tool-use dialogues with 753 API calls to assess the existing LLMs' capabilities in planning, retrieving, and calling APIs. For the second question, we construct a comprehensive training set containing 1,888 tool-use dialogues from 2,138 APIs spanning 1,000 distinct domains. Using this dataset, we train Lynx, a tool-augmented LLM initialized from Alpaca. Experimental results demonstrate that GPT-3.5 exhibits improved tool utilization compared to GPT-3, while GPT-4 excels in planning. However, there is still significant potential for further improvement. Moreover, Lynx surpasses Alpaca's tool utilization performance by more than 26 pts and approaches the effectiveness of GPT-3.5. Through error analysis, we highlight the key challenges for future research in this field to answer the third question.",
+    "source_url": "https://arxiv.org/src/2304.08244"
+  },
+  {
+    "arxiv_id": "2305.15334",
+    "paper_id": "/arxiv/2305.15334",
+    "title": "Gorilla: Large Language Model Connected with Massive APIs",
+    "authors": ["Shishir G. Patil", "Tianjun Zhang", "Xin Wang", "Joseph E. Gonzalez"],
+    "summary": "Large Language Models (LLMs) have seen an impressive wave of advances recently, with models now excelling in a variety of tasks, such as mathematical reasoning and program synthesis. However, their potential to effectively use tools via API calls remains unfulfilled. This is a challenging task even for today's state-of-the-art LLMs such as GPT-4, largely due to their inability to generate accurate input arguments and their tendency to hallucinate the wrong usage of an API call. We release Gorilla, a finetuned LLaMA-based model that surpasses the performance of GPT-4 on writing API calls. When combined with a document retriever, Gorilla demonstrates a strong capability to adapt to test-time document changes, enabling flexible user updates or version changes. It also substantially mitigates the issue of hallucination, commonly encountered when prompting LLMs directly. To evaluate the model's ability, we introduce APIBench, a comprehensive dataset consisting of HuggingFace, TorchHub, and TensorHub APIs. The successful integration of the retrieval system with Gorilla demonstrates the potential for LLMs to use tools more accurately, keep up with frequently updated documentation, and consequently increase the reliability and applicability of their outputs. Gorilla's code, model, data, and demo are available at this https URL.",
+    "source_url": "https://arxiv.org/src/2305.15334"
+  },
+  {
+    "arxiv_id": "2307.16789",
+    "paper_id": "/arxiv/2307.16789",
+    "title": "ToolLLM: Facilitating Large Language Models to Master 16000+ Real-world APIs",
+    "authors": [
+      "Yujia Qin",
+      "Shihao Liang",
+      "Yining Ye",
+      "Kunlun Zhu",
+      "Lan Yan",
+      "Yaxi Lu",
+      "Yankai Lin",
+      "Xin Cong",
+      "Xiangru Tang",
+      "Bill Qian",
+      "Sihan Zhao",
+      "Lauren Hong",
+      "Runchu Tian",
+      "Ruobing Xie",
+      "Jie Zhou",
+      "Mark Gerstein",
+      "Dahai Li",
+      "Zhiyuan Liu",
+      "Maosong Sun"
+    ],
+    "summary": "Despite the advancements of open-source large language models (LLMs), e.g., LLaMA, they remain significantly limited in tool-use capabilities, i.e., using external tools (APIs) to fulfill human instructions. The reason is that current instruction tuning largely focuses on basic language tasks but ignores the tool-use domain. This is in contrast to the excellent tool-use capabilities of state-of-the-art (SOTA) closed-source LLMs, e.g., ChatGPT. To bridge this gap, we introduce ToolLLM, a general tool-use framework encompassing data construction, model training, and evaluation. We first present ToolBench, an instruction-tuning dataset for tool use, which is constructed automatically using ChatGPT. Specifically, the construction can be divided into three stages: (i) API collection: we collect 16,464 real-world RESTful APIs spanning 49 categories from RapidAPI Hub; (ii) instruction generation: we prompt ChatGPT to generate diverse instructions involving these APIs, covering both single-tool and multi-tool scenarios; (iii) solution path annotation: we use ChatGPT to search for a valid solution path (chain of API calls) for each instruction. To enhance the reasoning capabilities of LLMs, we develop a novel depth-first search-based decision tree algorithm. It enables LLMs to evaluate multiple reasoning traces and expand the search space. Moreover, to evaluate the tool-use capabilities of LLMs, we develop an automatic evaluator: ToolEval. Based on ToolBench, we fine-tune LLaMA to obtain an LLM ToolLLaMA, and equip it with a neural API retriever to recommend appropriate APIs for each instruction. Experiments show that ToolLLaMA demonstrates a remarkable ability to execute complex instructions and generalize to unseen APIs, and exhibits comparable performance to ChatGPT. Our ToolLLaMA also demonstrates strong zero-shot generalization ability in an out-of-distribution tool-use dataset: APIBench.",
+    "source_url": "https://arxiv.org/src/2307.16789"
+  },
+  {
+    "arxiv_id": "2305.10601",
+    "paper_id": "/arxiv/2305.10601",
+    "title": "Tree of Thoughts: Deliberate Problem Solving with Large Language Models",
+    "authors": [
+      "Shunyu Yao",
+      "Dian Yu",
+      "Jeffrey Zhao",
+      "Izhak Shafran",
+      "Thomas L. Griffiths",
+      "Yuan Cao",
+      "Karthik Narasimhan"
+    ],
+    "summary": "Language models are increasingly being deployed for general problem solving across a wide range of tasks, but are still confined to token-level, left-to-right decision-making processes during inference. This means they can fall short in tasks that require exploration, strategic lookahead, or where initial decisions play a pivotal role. To surmount these challenges, we introduce a new framework for language model inference, Tree of Thoughts (ToT), which generalizes over the popular Chain of Thought approach to prompting language models, and enables exploration over coherent units of text (thoughts) that serve as intermediate steps toward problem solving. ToT allows LMs to perform deliberate decision making by considering multiple different reasoning paths and self-evaluating choices to decide the next course of action, as well as looking ahead or backtracking when necessary to make global choices. Our experiments show that ToT significantly enhances language models' problem-solving abilities on three novel tasks requiring non-trivial planning or search: Game of 24, Creative Writing, and Mini Crosswords. For instance, in Game of 24, while GPT-4 with chain-of-thought prompting only solved 4% of tasks, our method achieved a success rate of 74%. Code repo with all prompts: this https URL.",
+    "source_url": "https://arxiv.org/src/2305.10601"
+  },
+  {
+    "arxiv_id": "2305.20050",
+    "paper_id": "/arxiv/2305.20050",
+    "title": "Let's Verify Step by Step",
+    "authors": [
+      "Hunter Lightman",
+      "Vineet Kosaraju",
+      "Yura Burda",
+      "Harri Edwards",
+      "Bowen Baker",
+      "Teddy Lee",
+      "Jan Leike",
+      "John Schulman",
+      "Ilya Sutskever",
+      "Karl Cobbe"
+    ],
+    "summary": "In recent years, large language models have greatly improved in their ability to perform complex multi-step reasoning. However, even state-of-the-art models still regularly produce logical mistakes. To train more reliable models, we can turn either to outcome supervision, which provides feedback for a final result, or process supervision, which provides feedback for each intermediate reasoning step. Given the importance of training reliable models, and given the high cost of human feedback, it is important to carefully compare the both methods. Recent work has already begun this comparison, but many questions still remain. We conduct our own investigation, finding that process supervision significantly outperforms outcome supervision for training models to solve problems from the challenging MATH dataset. Our process-supervised model solves 78% of problems from a representative subset of the MATH test set. Additionally, we show that active learning significantly improves the efficacy of process supervision. To support related research, we also release PRM800K, the complete dataset of 800,000 step-level human feedback labels used to train our best reward model.",
+    "source_url": "https://arxiv.org/src/2305.20050"
+  },
+  {
+    "arxiv_id": "2305.18290",
+    "paper_id": "/arxiv/2305.18290",
+    "title": "Direct Preference Optimization: Your Language Model is Secretly a Reward Model",
+    "authors": [
+      "Rafael Rafailov",
+      "Archit Sharma",
+      "Eric Mitchell",
+      "Stefano Ermon",
+      "Christopher D. Manning",
+      "Chelsea Finn"
+    ],
+    "summary": "While large-scale unsupervised language models (LMs) learn broad world knowledge and some reasoning skills, achieving precise control of their behavior is difficult due to the completely unsupervised nature of their training. Existing methods for gaining such steerability collect human labels of the relative quality of model generations and fine-tune the unsupervised LM to align with these preferences, often with reinforcement learning from human feedback (RLHF). However, RLHF is a complex and often unstable procedure, first fitting a reward model that reflects the human preferences, and then fine-tuning the large unsupervised LM using reinforcement learning to maximize this estimated reward without drifting too far from the original model. In this paper we introduce a new parameterization of the reward model in RLHF that enables extraction of the corresponding optimal policy in closed form, allowing us to solve the standard RLHF problem with only a simple classification loss. The resulting algorithm, which we call Direct Preference Optimization (DPO), is stable, performant, and computationally lightweight, eliminating the need for sampling from the LM during fine-tuning or performing significant hyperparameter tuning. Our experiments show that DPO can fine-tune LMs to align with human preferences as well as or better than existing methods. Notably, fine-tuning with DPO exceeds PPO-based RLHF in ability to control sentiment of generations, and matches or improves response quality in summarization and single-turn dialogue while being substantially simpler to implement and train.",
+    "source_url": "https://arxiv.org/src/2305.18290"
+  },
+  {
+    "arxiv_id": "2307.03172",
+    "paper_id": "/arxiv/2307.03172",
+    "title": "Lost in the Middle: How Language Models Use Long Contexts",
+    "authors": [
+      "Nelson F. Liu",
+      "Kevin Lin",
+      "John Hewitt",
+      "Ashwin Paranjape",
+      "Michele Bevilacqua",
+      "Fabio Petroni",
+      "Percy Liang"
+    ],
+    "summary": "While recent language models have the ability to take long contexts as input, relatively little is known about how well they use longer context. We analyze the performance of language models on two tasks that require identifying relevant information in their input contexts: multi-document question answering and key-value retrieval. We find that performance can degrade significantly when changing the position of relevant information, indicating that current language models do not robustly make use of information in long input contexts. In particular, we observe that performance is often highest when relevant information occurs at the beginning or end of the input context, and significantly degrades when models must access relevant information in the middle of long contexts, even for explicitly long-context models. Our analysis provides a better understanding of how language models use their input context and provides new evaluation protocols for future long-context language models.",
+    "source_url": "https://arxiv.org/src/2307.03172"
+  },
+  {
+    "arxiv_id": "2310.06770",
+    "paper_id": "/arxiv/2310.06770",
+    "title": "SWE-bench: Can Language Models Resolve Real-World GitHub Issues?",
+    "authors": [
+      "Carlos E. Jimenez",
+      "John Yang",
+      "Alexander Wettig",
+      "Shunyu Yao",
+      "Kexin Pei",
+      "Ofir Press",
+      "Karthik Narasimhan"
+    ],
+    "summary": "Language models have outpaced our ability to evaluate them effectively, but for their future development it is essential to study the frontier of their capabilities. We find real-world software engineering to be a rich, sustainable, and challenging testbed for evaluating the next generation of language models. To this end, we introduce SWE-bench, an evaluation framework consisting of $2,294$ software engineering problems drawn from real GitHub issues and corresponding pull requests across $12$ popular Python repositories. Given a codebase along with a description of an issue to be resolved, a language model is tasked with editing the codebase to address the issue. Resolving issues in SWE-bench frequently requires understanding and coordinating changes across multiple functions, classes, and even files simultaneously, calling for models to interact with execution environments, process extremely long contexts and perform complex reasoning that goes far beyond traditional code generation tasks. Our evaluations show that both state-of-the-art proprietary models and our fine-tuned model SWE-Llama can resolve only the simplest issues. The best-performing model, Claude 2, is able to solve a mere $1.96$% of the issues. Advances on SWE-bench represent steps towards LMs that are more practical, intelligent, and autonomous.",
+    "source_url": "https://arxiv.org/src/2310.06770"
+  },
+  {
+    "arxiv_id": "2312.00752",
+    "paper_id": "/arxiv/2312.00752",
+    "title": "Mamba: Linear-Time Sequence Modeling with Selective State Spaces",
+    "authors": ["Albert Gu", "Tri Dao"],
+    "summary": "Foundation models, now powering most of the exciting applications in deep learning, are almost universally based on the Transformer architecture and its core attention module. Many subquadratic-time architectures such as linear attention, gated convolution and recurrent models, and structured state space models (SSMs) have been developed to address Transformers' computational inefficiency on long sequences, but they have not performed as well as attention on important modalities such as language. We identify that a key weakness of such models is their inability to perform content-based reasoning, and make several improvements. First, simply letting the SSM parameters be functions of the input addresses their weakness with discrete modalities, allowing the model to selectively propagate or forget information along the sequence length dimension depending on the current token. Second, even though this change prevents the use of efficient convolutions, we design a hardware-aware parallel algorithm in recurrent mode. We integrate these selective SSMs into a simplified end-to-end neural network architecture without attention or even MLP blocks (Mamba). Mamba enjoys fast inference (5$\\times$ higher throughput than Transformers) and linear scaling in sequence length, and its performance improves on real data up to million-length sequences. As a general sequence model backbone, Mamba achieves state-of-the-art performance across several modalities such as language, audio, and genomics. On language modeling, our Mamba-3B model outperforms Transformers of the same size and matches Transformers twice its size, both in pretraining and downstream evaluation.",
+    "source_url": "https://arxiv.org/src/2312.00752"
+  },
+  {
+    "arxiv_id": "2402.01030",
+    "paper_id": "/arxiv/2402.01030",
+    "title": "Executable Code Actions Elicit Better LLM Agents",
+    "authors": [
+      "Xingyao Wang",
+      "Yangyi Chen",
+      "Lifan Yuan",
+      "Yizhe Zhang",
+      "Yunzhu Li",
+      "Hao Peng",
+      "Heng Ji"
+    ],
+    "summary": "Large Language Model (LLM) agents, capable of performing a broad range of actions, such as invoking tools and controlling robots, show great potential in tackling real-world challenges. LLM agents are typically prompted to produce actions by generating JSON or text in a pre-defined format, which is usually limited by constrained action space (e.g., the scope of pre-defined tools) and restricted flexibility (e.g., inability to compose multiple tools). This work proposes to use executable Python code to consolidate LLM agents' actions into a unified action space (CodeAct). Integrated with a Python interpreter, CodeAct can execute code actions and dynamically revise prior actions or emit new actions upon new observations through multi-turn interactions. Our extensive analysis of 17 LLMs on API-Bank and a newly curated benchmark shows that CodeAct outperforms widely used alternatives (up to 20% higher success rate). The encouraging performance of CodeAct motivates us to build an open-source LLM agent that interacts with environments by executing interpretable code and collaborates with users using natural language. To this end, we collect an instruction-tuning dataset CodeActInstruct that consists of 7k multi-turn interactions using CodeAct. We show that it can be used with existing data to improve models in agent-oriented tasks without compromising their general capability. CodeActAgent, finetuned from Llama2 and Mistral, is integrated with Python interpreter and uniquely tailored to perform sophisticated tasks (e.g., model training) using existing libraries and autonomously self-debug.",
+    "source_url": "https://arxiv.org/src/2402.01030"
+  },
+  {
+    "arxiv_id": "2405.15793",
+    "paper_id": "/arxiv/2405.15793",
+    "title": "SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering",
+    "authors": [
+      "John Yang",
+      "Carlos E. Jimenez",
+      "Alexander Wettig",
+      "Kilian Lieret",
+      "Shunyu Yao",
+      "Karthik Narasimhan",
+      "Ofir Press"
+    ],
+    "summary": "Language model (LM) agents are increasingly being used to automate complicated tasks in digital environments. Just as humans benefit from powerful software applications, such as integrated development environments, for complex tasks like software engineering, we posit that LM agents represent a new category of end users with their own needs and abilities, and would benefit from specially-built interfaces to the software they use. We investigate how interface design affects the performance of language model agents. As a result of this exploration, we introduce SWE-agent: a system that facilitates LM agents to autonomously use computers to solve software engineering tasks. SWE-agent's custom agent-computer interface (ACI) significantly enhances an agent's ability to create and edit code files, navigate entire repositories, and execute tests and other programs. We evaluate SWE-agent on SWE-bench and HumanEvalFix, achieving state-of-the-art performance on both with a pass@1 rate of 12.5% and 87.7%, respectively, far exceeding the previous state-of-the-art achieved with non-interactive LMs. Finally, we provide insight on how the design of the ACI can impact agents' behavior and performance.",
+    "source_url": "https://arxiv.org/src/2405.15793"
+  },
+  {
+    "arxiv_id": "2501.12948",
+    "paper_id": "/arxiv/2501.12948",
+    "title": "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning",
+    "authors": ["DeepSeek-AI"],
+    "summary": "General reasoning represents a long-standing and formidable challenge in artificial intelligence. Recent breakthroughs, exemplified by large language models (LLMs) and chain-of-thought prompting, have achieved considerable success on foundational reasoning tasks. However, this success is heavily contingent upon extensive human-annotated demonstrations, and models' capabilities are still insufficient for more complex problems. Here we show that the reasoning abilities of LLMs can be incentivized through pure reinforcement learning (RL), obviating the need for human-labeled reasoning trajectories. The proposed RL framework facilitates the emergent development of advanced reasoning patterns, such as self-reflection, verification, and dynamic strategy adaptation. Consequently, the trained model achieves superior performance on verifiable tasks such as mathematics, coding competitions, and STEM fields, surpassing its counterparts trained via conventional supervised learning on human demonstrations. Moreover, the emergent reasoning patterns exhibited by these large-scale models can be systematically harnessed to guide and enhance the reasoning capabilities of smaller models.",
+    "source_url": "https://arxiv.org/src/2501.12948"
+  }
 ]

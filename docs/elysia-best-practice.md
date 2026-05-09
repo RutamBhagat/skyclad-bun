@@ -10,6 +10,10 @@ However, there are several concerns when trying to adapt an MVC pattern [(Model-
 
 This page is a guide on how to follow Elysia structure best practices combined with the MVC pattern, but it can be adapted to any coding pattern you prefer.
 
+## Project-Specific Ingest Rule
+
+For arXiv ingestion routes in this repository, always canonicalize to the base arXiv ID before any DB write or workspace path creation. Do not store versioned namespaces such as `1706.03762v7`; store only `1706.03762` and derive `paperId` as `/arxiv/<baseId>`.
+
 ## Folder Structure
 
 Elysia is unopinionated about folder structure, leaving you to **decide** how to organize your code yourself.

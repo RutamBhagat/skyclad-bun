@@ -67,7 +67,13 @@ export default function setup(pi: ExtensionAPI) {
     }),
     //@ts-ignore
     async execute(_toolCallId, params: IngestPaperSourceInput) {
-      const result = await callBackend<unknown>("/api/ingest/ingest_paper_source", params);
+      const arxivId = params.arxivId.replace(/v\d+$/i, "");
+      const result = await callBackend<unknown>("/api/ingest/ingest_paper_source", {
+        ...params,
+        arxivId,
+        paperId: `/arxiv/${arxivId}`,
+        sourceUrl: `https://arxiv.org/src/${arxivId}`,
+      });
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         details: {},
