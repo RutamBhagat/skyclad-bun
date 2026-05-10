@@ -29,11 +29,11 @@ type SectionDraft = Omit<SectionDoc, "docIndex" | "sourceFile"> & {
 
 const mainTexNames = new Set(["main.tex", "paper.tex", "ms.tex", "article.tex", "arxiv.tex"]);
 const ingestTools = ["tar", "latexpand", "pandoc"];
-const embeddingModel = "qwen3-embedding:8b-8k";
+const embeddingModel = "qwen3-embedding:8b";
 const ollamaEmbedUrl = `${env.OLLAMA_BASE_URL}/api/embed`;
 const minSectionBodyCharacters = 120;
 const maxSectionSlugLength = 96;
-const maxEmbeddingInputCharacters = 28000;
+const maxSectionCharacters = 10000;
 
 export function buildSectionEmbeddingText(title: string, markdown: string) {
   const tokens = marked.lexer(markdown, { gfm: true });
@@ -47,8 +47,7 @@ export function buildSectionEmbeddingText(title: string, markdown: string) {
   const plainText = chunks
     .join(" ")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, maxEmbeddingInputCharacters);
+    .trim();
   return `title: ${title} | text: ${plainText}`;
 }
 
@@ -115,21 +114,24 @@ export function splitMarkdown(markdown: string): SectionDoc[] {
     const bodyMarkdown = current.parts.slice(1).join("").trim();
     if (bodyMarkdown.length < minSectionBodyCharacters) return;
 
-    const docIndex = sections.length;
-    sections.push({
-      ...current,
-      docIndex,
-      markdown: sectionMarkdown,
-      // Keep ordering stable while making generated files readable during debugging.
-      sourceFile: `${docIndex.toString().padStart(3, "0")}-${
-        slugify(current.sectionTitle.replace(/\{#[^}]+\}/g, ""), {
-          lower: true,
-          strict: true,
-        })
-          .slice(0, maxSectionSlugLength)
-          .replace(/-+$/g, "") || "section"
-      }.md`,
-    });
+    const markdownChunks = splitOversizedMarkdown(sectionMarkdown, maxSectionCharacters);
+    for (const markdownChunk of markdownChunks) {
+      const docIndex = sections.length;
+      sections.push({
+        ...current,
+        docIndex,
+        markdown: markdownChunk,
+        // Keep ordering stable while making generated files readable during debugging.
+        sourceFile: `${docIndex.toString().padStart(3, "0")}-${
+          slugify(current.sectionTitle.replace(/\{#[^}]+\}/g, ""), {
+            lower: true,
+            strict: true,
+          })
+            .slice(0, maxSectionSlugLength)
+            .replace(/-+$/g, "") || "section"
+        }.md`,
+      });
+    }
   };
 
   for (const token of tokens) {
@@ -192,14 +194,13 @@ export async function writeSectionFiles(
 }
 
 export async function embed(input: string) {
+  const normalizedInput = input.replace(/\s+/g, " ").trim();
   const response = await fetch(ollamaEmbedUrl, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       model: embeddingModel,
-      input,
+      input: normalizedInput,
       dimensions: embeddingDimensions,
       truncate: true,
     }),
@@ -207,13 +208,35 @@ export async function embed(input: string) {
   if (!response.ok) {
     throw new Error(`Ollama embedding failed: ${response.status} ${await response.text()}`);
   }
-
   const body = (await response.json()) as { embeddings: number[][] };
   const embedding = body.embeddings[0];
-  if (!embedding) {
-    throw new Error("Ollama embedding response missing embeddings[0]");
-  }
+  if (!embedding) throw new Error("Ollama embedding response missing embeddings[0]");
   return embedding;
+}
+
+function splitOversizedMarkdown(markdown: string, maxChars: number) {
+  if (markdown.length <= maxChars) return [markdown];
+  const paragraphs = markdown.split("\n\n");
+  const chunks: string[] = [];
+  let current = "";
+  for (const paragraph of paragraphs) {
+    const block = current.length === 0 ? paragraph : `\n\n${paragraph}`;
+    if (current.length + block.length <= maxChars) {
+      current += block;
+      continue;
+    }
+    if (current.length > 0) chunks.push(current.trim());
+    if (paragraph.length <= maxChars) {
+      current = paragraph;
+      continue;
+    }
+    for (let i = 0; i < paragraph.length; i += maxChars) {
+      chunks.push(paragraph.slice(i, i + maxChars).trim());
+    }
+    current = "";
+  }
+  if (current.length > 0) chunks.push(current.trim());
+  return chunks.length > 0 ? chunks : [markdown.slice(0, maxChars).trim()];
 }
 
 function buildSection(

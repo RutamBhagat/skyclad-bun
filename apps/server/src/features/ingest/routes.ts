@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { and, db, eq, isNotNull } from "@skyclad-bun/db";
 import { ingestionJobs, paperDocs, papers } from "@skyclad-bun/db/schema/index";
 import { $ } from "bun";
+import { readdirSync } from "node:fs";
 import path from "node:path";
 
 import { parseArxivCandidates } from "./arxiv";
@@ -94,6 +95,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         });
 
       const workspace = `.ingest/${arxivId.replaceAll("/", "_")}`;
+      const rawArchiveDir = "apps/server/.ingest/raw/zip";
       const sourceArchive = `${workspace}/source.tar.gz`;
       const sourceDir = `${workspace}/src`;
       const expandedTex = `${workspace}/expanded.tex`;
@@ -101,10 +103,47 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       const sectionsDir = `${workspace}/sections`;
 
       try {
-        // build the source workspace from the caller-provided arxiv source archive
-        await $`mkdir -p ${sourceDir}`;
-        // const sourceResponse = await fetch(sourceUrl);
-        // await Bun.write(sourceArchive, sourceResponse);
+        const sourceArchiveNamePrefix = `arXiv-${arxivId}v`;
+        // Look for pre-downloaded source archives for this arXiv id.
+        const sourceArchiveCandidates = (() => {
+          try {
+            return readdirSync(rawArchiveDir)
+              .filter((name) => name.startsWith(sourceArchiveNamePrefix) && name.endsWith(".tar.gz"))
+              .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+          } catch {
+            return [];
+          }
+        })();
+        const selectedSourceArchiveName = sourceArchiveCandidates[sourceArchiveCandidates.length - 1];
+
+        await $`mkdir -p ${workspace} ${sourceDir}`;
+        if (selectedSourceArchiveName) {
+          // Use the newest local archive version when available.
+          await $`cp ${path.join(rawArchiveDir, selectedSourceArchiveName)} ${sourceArchive}`;
+        } else {
+          // Fallback to arXiv download only when local archive is missing.
+          const fetchTimeoutMs = 30_000;
+          const sourceController = new AbortController();
+          // Abort slow fetches so ingest fails fast with a clear timeout error.
+          const timeoutId = setTimeout(() => sourceController.abort("fetch_timeout"), fetchTimeoutMs);
+          try {
+            const sourceResponse = await fetch(sourceUrl, { signal: sourceController.signal });
+            // Surface rate-limit failures explicitly for callers.
+            if (sourceResponse.status === 429) throw new Error(`Rate limited by arXiv (429) while fetching ${sourceUrl}`);
+            // Fail on any non-success response before writing archive bytes.
+            if (!sourceResponse.ok) throw new Error(`Failed to fetch source archive (${sourceResponse.status}) from ${sourceUrl}`);
+            await Bun.write(sourceArchive, sourceResponse);
+          } catch (error) {
+            // Normalize abort/timeout errors into a clear timeout message.
+            if (error instanceof Error && (error.name === "AbortError" || error.message.includes("fetch_timeout"))) {
+              throw new Error(`Timed out after ${fetchTimeoutMs}ms while fetching ${sourceUrl}`);
+            }
+            throw error;
+          } finally {
+            clearTimeout(timeoutId);
+          }
+        }
+
         await $`tar -xzf ${sourceArchive} -C ${sourceDir}`;
 
         // flatten included tex files so pandoc sees one complete latex document
@@ -114,8 +153,8 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           .text();
         await Bun.write(expandedTex, expanded);
 
-        // convert the flattened latex into section-friendly markdown with math intact
-        await $`pandoc ${expandedTex} -f latex -t markdown+tex_math_dollars --wrap=none -o ${paperMarkdown}`;
+        // convert latex into markdown while preserving math but dropping raw html passthrough
+        await $`pandoc ${expandedTex} -f latex -t markdown-raw_html-raw_attribute+tex_math_dollars --wrap=none -o ${paperMarkdown}`;
 
         // store one retrieval document per markdown heading section
         const markdown = await Bun.file(paperMarkdown).text();
