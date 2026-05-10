@@ -11,7 +11,7 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
     async ({ body }) => {
       const searchText = `${body.paperName}\n${body.query}`;
       const queryEmbedding = await embed(searchText);
-      const similarity = sql<number>`1 - (${cosineDistance(papers.metadataEmbedding, queryEmbedding)})`;
+      const similarity = sql<number>`round((1 - (${cosineDistance(papers.metadataEmbedding, queryEmbedding)}))::numeric, 2)::float8`;
 
       const rows = await db
         .select({
@@ -42,29 +42,23 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
     },
   )
   .post(
-    "/query_paper_docs",
+    "/query_paper_docs_hybrid",
     async ({ body }) => {
-      const paper = await db
-        .select({ id: papers.id })
-        .from(papers)
-        .where(eq(papers.id, body.paperId))
-        .limit(1);
-      if (paper.length === 0) {
-        return { ok: false, code: "NOT_INGESTED", result: [], args: body };
-      }
-
       const queryEmbedding = await embed(body.query);
+
+      // Rank chunks by one hybrid score so semantic similarity and exact term matches both contribute.
       const rows = await db
         .select({
           chunkId: paperDocs.id,
           section: paperDocs.sectionTitle,
           text: paperDocs.markdown,
-          score: sql<number>`1 - (${cosineDistance(paperDocs.embedding, queryEmbedding)})`,
-          locationHint: paperDocs.id,
+          semanticScore: sql<number>`round((1 - (${cosineDistance(paperDocs.embedding, queryEmbedding)}))::numeric, 2)::float8`,
+          lexicalScore: sql<number>`round(ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${body.lexicalQuery}))::numeric, 2)::float8`,
+          hybridScore: sql<number>`round(((1 - (${cosineDistance(paperDocs.embedding, queryEmbedding)})) + ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${body.lexicalQuery})))::numeric, 2)::float8`,
         })
         .from(paperDocs)
         .where(and(eq(paperDocs.paperId, body.paperId), isNotNull(paperDocs.embedding)))
-        .orderBy((table) => desc(table.score))
+        .orderBy((table) => desc(table.hybridScore))
         .limit(3);
 
       return { ok: true, result: rows };
@@ -73,55 +67,7 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
       body: t.Object({
         paperId: t.String(),
         query: t.String(),
-      }),
-    },
-  )
-  .post(
-    "/query_paper_docs_hybrid",
-    async ({ body }) => {
-      const queryEmbedding = await embed(body.query);
-
-      const semanticRows = await db
-        .select({
-          chunkId: paperDocs.id,
-          section: paperDocs.sectionTitle,
-          text: paperDocs.markdown,
-          semanticScore: sql<number>`1 - (${cosineDistance(paperDocs.embedding, queryEmbedding)})`,
-          lexicalScore: sql<number>`0`,
-        })
-        .from(paperDocs)
-        .where(and(eq(paperDocs.paperId, body.paperId), isNotNull(paperDocs.embedding)))
-        .orderBy((table) => desc(table.semanticScore))
-        .limit(5);
-
-      const lexicalRows = await db
-        .select({
-          chunkId: paperDocs.id,
-          section: paperDocs.sectionTitle,
-          text: paperDocs.markdown,
-          semanticScore: sql<number>`0`,
-          lexicalScore: sql<number>`ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${body.query}))`,
-        })
-        .from(paperDocs)
-        .where(
-          and(
-            eq(paperDocs.paperId, body.paperId),
-            sql`${paperDocs.searchText} @@ websearch_to_tsquery('english', ${body.query})`,
-          ),
-        )
-        .orderBy((table) => desc(table.lexicalScore))
-        .limit(5);
-
-      const merged = [...semanticRows, ...lexicalRows];
-      const byChunk = new Map<string, (typeof merged)[number]>();
-      for (const row of merged) if (!byChunk.has(row.chunkId)) byChunk.set(row.chunkId, row);
-
-      return { ok: true, result: Array.from(byChunk.values()).slice(0, 5) };
-    },
-    {
-      body: t.Object({
-        paperId: t.String(),
-        query: t.String(),
+        lexicalQuery: t.String(),
       }),
     },
   );

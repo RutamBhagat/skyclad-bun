@@ -8,9 +8,10 @@ type ResolvePaperIdInput = {
   query: string;
 };
 
-type QueryPaperDocsInput = {
+type QueryPaperDocsHybridInput = {
   paperId: string;
   query: string;
+  lexicalQuery: string;
 };
 
 const DEFAULT_PAPER_RAG_BASE_URL = "http://localhost:3000";
@@ -59,11 +60,11 @@ export default function setup(pi: ExtensionAPI) {
     },
   });
 
-  pi.registerTool({
-    name: "query_paper_docs",
-    label: "Query Paper Docs",
+    pi.registerTool({
+    name: "query_paper_docs_hybrid",
+    label: "Query Paper Docs Hybrid",
     description:
-      "Retrieve grounded snippets for an already-indexed paperId. If results are not sufficient, optionally retry with a better query by rephrasing the question or using useful clues from retrieved snippets.",
+      "Retrieve grounded snippets using semantic query + lexical query. Only use lexicalQuery for exact strings like quotes, symbols, citation keys, formula tokens, or section labels.",
     promptSnippet: "Query indexed paper documents for grounded snippets after a paperId is known.",
     promptGuidelines: [
       "Before using query_paper_docs, ask the user a clarification question with questionnaire when the query is too broad or lacks target concept, claim, section, method, dataset, metric, comparison, table, figure, or output format.",
@@ -72,10 +73,11 @@ export default function setup(pi: ExtensionAPI) {
     parameters: Type.Object({
       paperId: Type.String(),
       query: Type.String(),
+      lexicalQuery: Type.String(),
     }),
     //@ts-ignore
-    async execute(_toolCallId, params: QueryPaperDocsInput) {
-      const result = await callBackend<unknown>("/api/retrieval/query_paper_docs", params);
+    async execute(_toolCallId, params: QueryPaperDocsHybridInput) {
+      const result = await callBackend<unknown>("/api/retrieval/query_paper_docs_hybrid", params);
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
         details: {},
