@@ -43,15 +43,22 @@ export default function setup(pi: ExtensionAPI) {
     name: "resolve_paper_id",
     label: "Resolve Paper ID",
     description:
-      "Resolve a paper reference to a canonical paperId and verify whether that paper is indexed in the DB. Use this first unless a trusted paperId is already known.",
-    promptSnippet: "Resolve paper references to canonical indexed paper IDs for paper RAG.",
+      "Resolve a paper reference to a canonical indexed paperId. Use this before querying paper docs unless a trusted paperId is already known.",
+    promptSnippet:
+      "Resolve an arXiv/paper reference to a canonical indexed paperId before fetching grounded snippets when the exact paperId is unknown.",
     promptGuidelines: [
-      "Before using resolve_paper_id, ask the user a clarification question with questionnaire when paperName is incomplete, ambiguous, acronym-only, author-only, or could match multiple papers.",
+      "Use resolve_paper_id when the user asks about a paper and you do not already know the exact indexed paperId.",
+      "Before using resolve_paper_id, ask the user a clarification question with `rpiv-ask-user-question` when paperName is incomplete, ambiguous, acronym-only, author-only, or could match multiple papers.",
+      "Pass paperName as the best available title, arXiv ID, citation, or author/title hint; pass query as the user's research task or intent to help rank matches.",
       "Do not invent paperId values. If resolution is uncertain or returns multiple candidates, ask a follow-up clarification question before querying paper docs.",
     ],
     parameters: Type.Object({
-      paperName: Type.String(),
-      query: Type.String(),
+      paperName: Type.String({
+        description: "Paper title, arXiv ID, citation, or author/title hint to resolve.",
+      }),
+      query: Type.String({
+        description: "User's research question or intent used to rank matching papers.",
+      }),
     }),
     //@ts-ignore
     async execute(_toolCallId, params: ResolvePaperIdInput) {
@@ -67,16 +74,28 @@ export default function setup(pi: ExtensionAPI) {
     name: "query_paper_docs",
     label: "Query Paper Docs",
     description:
-      "Retrieve grounded snippets using semantic query + lexical query. Only use lexicalQuery for exact strings like quotes, symbols, citation keys, formula tokens, or section labels.",
-    promptSnippet: "Query indexed paper documents for grounded snippets after a paperId is known.",
+      "Retrieve grounded snippets from indexed paper documents using a hybrid semantic query + lexical query",
+    promptSnippet:
+      "Fetch grounded snippets from an indexed arXiv/paper document by paperId. Prefer resolve_paper_id first when the exact paperId is unknown.",
     promptGuidelines: [
-      "Before using query_paper_docs, ask the user a clarification question with questionnaire when the query is too broad or lacks target concept, claim, section, method, dataset, metric, comparison, table, figure, or output format.",
-      "For paper RAG, prefer this flow: questionnaire -> resolve_paper_id -> query_paper_docs. Retry query_paper_docs with a sharper query when snippets are weak.",
+      "Use query_paper_docs only after a paperId is known from resolve_paper_id or from a trusted user-provided paperId.",
+      "Before using query_paper_docs, ask the user a clarification question with `rpiv-ask-user-question` when the query is too broad or lacks target concept, claim, section, method, dataset, metric, comparison, table, figure, or output format.",
+      "Make query a focused natural-language retrieval request that includes the target concept, section, claim, method, dataset, metric, comparison, table, figure, or desired evidence.",
+      "Only use lexicalQuery for exact strings like quotes, symbols, citation keys, formula tokens, acronyms, dataset names, metric names, table/figure labels, or section titles. Leave it as the best exact-term subset of the query when no quote/label is known.",
+      "For paper RAG, prefer this flow: `rpiv-ask-user-question` -> resolve_paper_id -> query_paper_docs. Retry query_paper_docs with a sharper query if snippets are weak.",
+      "When answering from snippets, cite the returned section/chunk context and quote exact source text when possible; do not claim evidence that is not present in the retrieved snippets.",
     ],
     parameters: Type.Object({
-      paperId: Type.String(),
-      query: Type.String(),
-      lexicalQuery: Type.String(),
+      paperId: Type.String({
+        description: "Exact indexed paperId returned by resolve_paper_id or provided by a trusted source.",
+      }),
+      query: Type.String({
+        description: "Focused natural-language retrieval request for the paper content.",
+      }),
+      lexicalQuery: Type.String({
+        description:
+          "Exact lexical terms for hybrid retrieval: quotes, symbols, formula tokens, acronyms, dataset/metric names, section titles, or table/figure labels.",
+      }),
     }),
     //@ts-ignore
     async execute(_toolCallId, params: QueryPaperDocsHybridInput) {
