@@ -1,9 +1,13 @@
+---
+name: arxiv-usage
+description: Answer user questions about papers from grounded evidence, using the paper/arXiv tools to identify the correct paper and retrieve relevant snippets before responding.
+---
+
 # AGENTS.md
 
 ## Paper and arXiv Requests
 
 ### Goal
-Answer user questions about papers from grounded evidence, using the paper/arXiv tools to identify the correct paper and retrieve relevant snippets before responding.
 
 Success means:
 - the intended paper or topic is clear enough to search;
