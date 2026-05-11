@@ -38,7 +38,8 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
         `Paper matches for "${body.paperName}":`,
         `Query: ${body.query}`,
         "",
-        ...rows.map((row) =>
+        ...rows.flatMap((row, index) => [
+          ...(index > 0 ? ["---"] : []),
           [
             `- Title: ${row.title}`,
             `  Paper ID: ${row.paperId}`,
@@ -50,7 +51,7 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
           ]
             .filter(Boolean)
             .join("\n"),
-        ),
+        ]),
       ].join("\n");
     },
     {
@@ -89,7 +90,8 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
         `Query: ${body.query}`,
         `Lexical query: ${body.lexicalQuery}`,
         "",
-        ...rows.map((row) =>
+        ...rows.flatMap((row, index) => [
+          ...(index > 0 ? ["---"] : []),
           [
             `## ${row.section}`,
             "",
@@ -100,7 +102,7 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
             "",
             row.text,
           ].join("\n"),
-        ),
+        ]),
       ].join("\n\n");
     },
     {
