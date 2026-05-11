@@ -1,5 +1,6 @@
 {
   "packages": [
-    "npm:@juicesharp/rpiv-ask-user-question"
+    "npm:@juicesharp/rpiv-ask-user-question",
+    "npm:@dreki-gg/pi-context7"
   ]
 }
