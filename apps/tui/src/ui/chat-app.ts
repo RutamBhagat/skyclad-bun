@@ -1,5 +1,6 @@
-import { CombinedAutocompleteProvider, Container, Editor, fuzzyFilter, Input, Loader, Markdown, matchesKey, Text, TUI, type Focusable, type SlashCommand } from "@earendil-works/pi-tui";
+import { CombinedAutocompleteProvider, Container, Editor, fuzzyFilter, Input, Loader, Markdown, matchesKey, Text, TUI, type Focusable, type SlashCommand } from "@earendil-works/pi-tui"
 import type { Model, ModelThinkingLevel } from "@earendil-works/pi-ai";
+import { ToolExecutionComponent } from "@earendil-works/pi-coding-agent";
 import type { ChatClient } from "../chat/chat-client";
 import { loginChatGpt, logoutChatGpt } from "../auth/chatgpt-auth";
 import { chalk, editorTheme, markdownTheme } from "./theme";
@@ -124,6 +125,7 @@ export class ChatApp {
   private readonly editor: Editor;
   private readonly loader: Loader;
   private readonly modelStatus: RightAlignedText;
+  private readonly toolMessages = new Map<string, ToolExecutionComponent>();
   private waiting = false;
 
   constructor(
@@ -131,13 +133,18 @@ export class ChatApp {
     private readonly chatClient: ChatClient,
   ) {
     this.editor = new Editor(tui, editorTheme);
-    this.editor.setAutocompleteProvider(new CombinedAutocompleteProvider(slashCommands, process.cwd()));
+    const skillCommands = chatClient.getLoadedResources().skills.map((name) => ({
+      name: `skill:${name}`,
+      description: "Invoke loaded skill",
+    }));
+    this.editor.setAutocompleteProvider(new CombinedAutocompleteProvider([...slashCommands, ...skillCommands], process.cwd()));
     this.loader = new Loader(tui, chalk.cyan, chalk.dim, "Thinking...");
     this.modelStatus = new RightAlignedText();
   }
 
   start(): void {
     this.tui.addChild(new Text(chalk.bold("PI Chat"), 1, 0));
+    this.addLoadedResources();
     this.updateModelStatus();
     this.tui.addChild(this.transcript);
     this.tui.addChild(this.editor);
@@ -154,6 +161,37 @@ export class ChatApp {
       return { consume: true };
     });
     this.tui.start();
+  }
+
+  private addLoadedResources(): void {
+    const loaded = this.chatClient.getLoadedResources();
+    if (loaded.skills.length > 0) this.tui.addChild(new Text(`${chalk.bold("[Skills]")}\n  ${loaded.skills.join(", ")}`, 1, 0));
+    if (loaded.extensions.length > 0) this.tui.addChild(new Text(`${chalk.bold("[Extensions]")}\n  ${loaded.extensions.join(", ")}`, 1, 0));
+  }
+
+  private addSkillInvocation(name: string): void {
+    const loaderIndex = this.transcript.children.indexOf(this.loader);
+    const message = new Text(`${chalk.bold("[skill]")} ${chalk.cyan(name)} ${chalk.dim("(expanded)")}`, 1, 1);
+    if (loaderIndex >= 0) this.transcript.children.splice(loaderIndex, 0, message);
+    else this.transcript.addChild(message);
+    this.tui.requestRender();
+  }
+
+  private setToolInvocation(tool: { id: string; name: string; args?: any; result?: any; isError?: boolean; status: "start" | "end" }): void {
+    let message = this.toolMessages.get(tool.id);
+    if (!message) {
+      message = new ToolExecutionComponent(tool.name, tool.id, tool.args ?? {}, {}, this.chatClient.getToolDefinition(tool.name), this.tui, process.cwd());
+      this.toolMessages.set(tool.id, message);
+      const loaderIndex = this.transcript.children.indexOf(this.loader);
+      if (loaderIndex >= 0) this.transcript.children.splice(loaderIndex, 0, message);
+      else this.transcript.addChild(message);
+    }
+    if (tool.status === "start") message.markExecutionStarted();
+    if (tool.status === "end") {
+      message.updateResult({ ...tool.result, isError: tool.isError ?? false });
+      this.toolMessages.delete(tool.id);
+    }
+    this.tui.requestRender();
   }
 
   private addMessage(role: string, content: string): Markdown {
@@ -283,11 +321,16 @@ export class ChatApp {
     let responseText = "";
 
     try {
-      const result = await this.chatClient.sendMessage(text, (delta) => {
-        responseText += delta;
-        assistant.setText(`${chalk.green("Assistant")}\n\n${responseText}`);
-        this.tui.requestRender();
-      });
+      const result = await this.chatClient.sendMessage(
+        text,
+        (delta) => {
+          responseText += delta;
+          assistant.setText(`${chalk.green("Assistant")}\n\n${responseText}`);
+          this.tui.requestRender();
+        },
+        (skill) => this.addSkillInvocation(skill.name),
+        (tool) => this.setToolInvocation(tool),
+      );
 
       assistant.setText(`${chalk.green("Assistant")}\n\n${result.content || responseText}`);
     } catch (error) {
