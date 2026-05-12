@@ -11,7 +11,7 @@ const markdownContentType = "text/markdown; charset=utf-8";
 const paperMatchLimit = 3;
 const semanticCandidateLimit = 80;
 const lexicalCandidateLimit = 80;
-const finalChunkLimit = 8;
+const finalChunkLimit = 3;
 
 export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
   .post(
