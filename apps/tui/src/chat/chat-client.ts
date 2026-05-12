@@ -1,13 +1,38 @@
-import { getModel, getModels, stream, type AssistantMessage, type Context, type ModelThinkingLevel } from "@earendil-works/pi-ai";
+import { existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { getModel, getModels, type AssistantMessage, type ModelThinkingLevel } from "@earendil-works/pi-ai";
+import { AuthStorage, createAgentSession, SessionManager } from "@earendil-works/pi-coding-agent";
 import type { ChatMessageView } from "../shared/types";
 import { getChatGptApiKey, type ChatGptAuthCallbacks } from "../auth/chatgpt-auth";
 import { defaultModelId, readChatSettings, writeChatSettings } from "./chat-settings";
 
+const appSourceDir = dirname(fileURLToPath(import.meta.url));
+
+function findAppRoot(): string {
+  const candidates = [process.cwd(), appSourceDir];
+
+  for (const start of candidates) {
+    let current = start;
+    while (true) {
+      if (existsSync(join(current, "package.json")) && existsSync(join(current, ".pi"))) {
+        return current;
+      }
+
+      const parent = dirname(current);
+      if (parent === current) break;
+      current = parent;
+    }
+  }
+
+  throw new Error("Could not find app root with package.json and .pi directory.");
+}
+
 export class ChatClient {
-  private context: Context = {
-    systemPrompt: "You are a helpful assistant.",
-    messages: [],
-  };
+  private readonly appRoot = findAppRoot();
+  private readonly agentDir = join(this.appRoot, ".pi");
+  private readonly authStorage = AuthStorage.inMemory();
+  private session: any;
   private modelId = defaultModelId;
   private reasoningLevel: ModelThinkingLevel = "medium";
 
@@ -35,6 +60,27 @@ export class ChatClient {
     this.modelId = modelId;
     this.reasoningLevel = reasoningLevel;
     await writeChatSettings({ modelId, reasoningLevel });
+
+    if (this.session) {
+      this.session.setThinkingLevel(reasoningLevel);
+      await this.session.setModel(getModel("openai-codex", modelId as never));
+    }
+  }
+
+  private async getSession() {
+    if (!this.session) {
+      const result = await createAgentSession({
+        cwd: this.appRoot,
+        agentDir: this.agentDir,
+        authStorage: this.authStorage,
+        sessionManager: SessionManager.inMemory(),
+        model: getModel("openai-codex", this.modelId as never),
+        thinkingLevel: this.reasoningLevel,
+      });
+      this.session = result.session;
+    }
+
+    return this.session;
   }
 
   private getAssistantText(message: AssistantMessage): string {
@@ -45,27 +91,29 @@ export class ChatClient {
   }
 
   async sendMessage(text: string, onDelta: (text: string) => void): Promise<ChatMessageView> {
-    this.context.messages.push({ role: "user", content: text, timestamp: Date.now() });
-
     const apiKey = await getChatGptApiKey(this.authCallbacks);
-    const model = getModel("openai-codex", this.modelId as never);
-    const response = stream(model, this.context, {
-      apiKey,
-      sessionId: crypto.randomUUID(),
-      transport: "auto",
-      reasoning: this.reasoningLevel === "off" ? undefined : this.reasoningLevel,
+    this.authStorage.setRuntimeApiKey("openai-codex", apiKey);
+    const session = await this.getSession();
+    let assistantMessage: AssistantMessage | undefined;
+
+    const unsubscribe = session.subscribe((event: any) => {
+      if (event.type === "message_update" && event.assistantMessageEvent.type === "text_delta") {
+        onDelta(event.assistantMessageEvent.delta);
+      }
+      if (event.type === "message_end" && event.message.role === "assistant") {
+        assistantMessage = event.message;
+      }
     });
 
-    for await (const event of response) {
-      if (event.type === "text_delta") onDelta(event.delta);
+    try {
+      await session.prompt(text);
+    } finally {
+      unsubscribe();
     }
-
-    const assistantMessage = await response.result();
-    this.context.messages.push(assistantMessage);
 
     return {
       role: "assistant",
-      content: this.getAssistantText(assistantMessage),
+      content: assistantMessage ? this.getAssistantText(assistantMessage) : "",
     };
   }
 }

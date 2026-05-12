@@ -1,0 +1,6 @@
+{
+  "extensions": [
+    "extensions/arxiv/index.ts",
+    "../node_modules/@juicesharp/rpiv-ask-user-question/index.ts"
+  ]
+}

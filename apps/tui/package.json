@@ -9,7 +9,9 @@
   },
   "dependencies": {
     "@earendil-works/pi-ai": "^0.74.0",
+    "@earendil-works/pi-coding-agent": "^0.74.0",
     "@earendil-works/pi-tui": "^0.74.0",
+    "@juicesharp/rpiv-ask-user-question": "^1.4.2",
     "chalk": "^5.6.2"
   },
   "devDependencies": {
