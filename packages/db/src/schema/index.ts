@@ -51,13 +51,8 @@ export const paperDocs = pgTable(
     markdown: text("markdown").notNull(),
     // used inside a resolved paper namespace for semantic section search
     embedding: vector("embedding", { dimensions: embeddingDimensions }),
-    // english full-text search: good for natural-language terms with stemming
+    // full-text search: preserves technical terms/acronyms
     searchText: tsvector("search_text").generatedAlwaysAs(
-      (): SQL =>
-        sql`to_tsvector('english', coalesce(${paperDocs.sectionTitle}, '') || ' ' || coalesce(${paperDocs.markdown}, ''))`,
-    ),
-    // simple full-text search: better fallback for acronyms, identifiers, and less aggressive normalization
-    searchTextSimple: tsvector("search_text_simple").generatedAlwaysAs(
       (): SQL =>
         sql`to_tsvector('simple', coalesce(${paperDocs.sectionTitle}, '') || ' ' || coalesce(${paperDocs.markdown}, ''))`,
     ),
@@ -69,8 +64,7 @@ export const paperDocs = pgTable(
       "hnsw",
       table.embedding.op("vector_cosine_ops"),
     ),
-    index("paper_docs_search_idx").using("gin", table.searchText),
-    index("paper_docs_search_simple_idx").using("gin", table.searchTextSimple),
+    index("paper_docs_search_text_idx").using("gin", table.searchText),
   ],
 );
 

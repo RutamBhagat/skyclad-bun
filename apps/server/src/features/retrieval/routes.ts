@@ -89,52 +89,30 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
         .orderBy(asc(semanticDistance))
         .limit(semanticCandidateLimit);
 
-      const englishLexicalScore = sql<number>`ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${lexicalQuery}), 32)`;
+      const lexicalScore = sql<number>`ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('simple', ${lexicalQuery}), 32)`;
 
-      const englishLexicalRowsPromise = lexicalQuery
+      const lexicalRowsPromise = lexicalQuery
         ? db
             .select({
               chunkId: paperDocs.id,
               section: paperDocs.sectionTitle,
               text: paperDocs.markdown,
-              score: englishLexicalScore,
+              score: lexicalScore,
             })
             .from(paperDocs)
             .where(
               and(
                 eq(paperDocs.paperId, body.paperId),
-                sql`${paperDocs.searchText} @@ websearch_to_tsquery('english', ${lexicalQuery})`,
+                sql`${paperDocs.searchText} @@ websearch_to_tsquery('simple', ${lexicalQuery})`,
               ),
             )
-            .orderBy(desc(englishLexicalScore))
+            .orderBy(desc(lexicalScore))
             .limit(lexicalCandidateLimit)
         : Promise.resolve([]);
 
-      const simpleLexicalScore = sql<number>`ts_rank_cd(${paperDocs.searchTextSimple}, websearch_to_tsquery('simple', ${lexicalQuery}), 32)`;
-
-      const simpleLexicalRowsPromise = lexicalQuery
-        ? db
-            .select({
-              chunkId: paperDocs.id,
-              section: paperDocs.sectionTitle,
-              text: paperDocs.markdown,
-              score: simpleLexicalScore,
-            })
-            .from(paperDocs)
-            .where(
-              and(
-                eq(paperDocs.paperId, body.paperId),
-                sql`${paperDocs.searchTextSimple} @@ websearch_to_tsquery('simple', ${lexicalQuery})`,
-              ),
-            )
-            .orderBy(desc(simpleLexicalScore))
-            .limit(lexicalCandidateLimit)
-        : Promise.resolve([]);
-
-      const [semanticRows, englishLexicalRows, simpleLexicalRows] = await Promise.all([
+      const [semanticRows, lexicalRows] = await Promise.all([
         semanticRowsPromise,
-        englishLexicalRowsPromise,
-        simpleLexicalRowsPromise,
+        lexicalRowsPromise,
       ]);
 
       const candidates = new Map<string, RetrievedChunk>();
@@ -143,12 +121,8 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
         addRrfCandidate(candidates, row, index + 1, "semantic");
       });
 
-      englishLexicalRows.forEach((row, index) => {
-        addRrfCandidate(candidates, row, index + 1, "englishLexical");
-      });
-
-      simpleLexicalRows.forEach((row, index) => {
-        addRrfCandidate(candidates, row, index + 1, "simpleLexical");
+      lexicalRows.forEach((row, index) => {
+        addRrfCandidate(candidates, row, index + 1, "lexical");
       });
 
       const rows = Array.from(candidates.values())
@@ -176,8 +150,7 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
             `Chunk ID: ${row.chunkId}`,
             `RRF score: ${formatScore(row.rrfScore)}`,
             `Semantic score: ${formatScore(row.semanticScore)}`,
-            `English lexical score: ${formatScore(row.englishLexicalScore)}`,
-            `Simple lexical score: ${formatScore(row.simpleLexicalScore)}`,
+            `Lexical score: ${formatScore(row.lexicalScore)}`,
             "",
             row.text,
           ].join("\n"),

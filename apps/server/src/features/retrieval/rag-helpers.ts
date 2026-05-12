@@ -6,8 +6,7 @@ export type RetrievedChunk = {
   text: string;
   rrfScore: number;
   semanticScore?: number;
-  englishLexicalScore?: number;
-  simpleLexicalScore?: number;
+  lexicalScore?: number;
 };
 
 export function formatScore(score: number | undefined) {
@@ -24,7 +23,7 @@ export function addRrfCandidate(
     score?: number | null;
   },
   rank: number,
-  source: "semantic" | "englishLexical" | "simpleLexical",
+  source: "semantic" | "lexical",
 ) {
   const existing = candidates.get(row.chunkId) ?? {
     chunkId: row.chunkId,
@@ -39,10 +38,8 @@ export function addRrfCandidate(
 
   if (source === "semantic") {
     existing.semanticScore = score;
-  } else if (source === "englishLexical") {
-    existing.englishLexicalScore = score;
   } else {
-    existing.simpleLexicalScore = score;
+    existing.lexicalScore = score;
   }
 
   candidates.set(row.chunkId, existing);
