@@ -42,7 +42,7 @@ If the user’s clarification is still not specific enough, ask another focused 
 
 `resolve_paper_id` does not contain all the arXiv papers, so if it fails to find the paper after 3 tries with different arguments, you should tell the user that the paper is not in the index and stop.
 
-NOTE: subsequent questions may or may not be asked on the same paper so use `rpiv-ask-user-question` if needed 
+NOTE: subsequent questions may or may not be asked on the same paper so use `rpiv-ask-user-question` if needed.
 
 ## Paper Resolution Workflow
 
@@ -54,14 +54,50 @@ NOTE: subsequent questions may or may not be asked on the same paper so use `rpi
 4. If resolution is uncertain or returns multiple plausible candidates, clarify before retrieving snippets.
 5. Query the paper with `query_paper_docs` only after the valid `paperId` is known.
    - `query`: focused natural-language request for the target claim, method, dataset, metric, section, table, figure, comparison, formula, or evidence.
-   - `lexicalQuery`: exact terms only, such as quoted phrases, symbols, formula tokens, acronyms, dataset/metric names, section titles, or table/figure labels. If no exact label is known, use the strongest exact-term subset.
+   - `lexicalQuery`: tool-use query formed by the agent for exact lexical recall. Use exact terms, quoted phrases, symbols, formula tokens, acronyms, dataset/metric names, section titles, table/figure labels, citation keys, and obvious terminology variants from the user request or paper context.
+
+## Lexical Query Formation
+
+`lexicalQuery` is a required tool argument and should be formed by the agent. Do not ask the user to handcraft it unless the exact term, label, metric, table, figure, or acronym is genuinely ambiguous and necessary for retrieval.
+
+`query_paper_docs` sends `lexicalQuery` to PostgreSQL `websearch_to_tsquery`, so unquoted space-separated terms behave like an AND query. Use plain space-separated terms only when every term must appear in the same snippet.
+
+For alternatives, synonyms, acronym expansions, and related exact terms, use explicit `OR`:
+
+- Good: `recurrent OR convolutional OR RNN OR CNN`
+- Bad for alternatives: `rnn cnn`
+- Good: `BLEU OR WMT 2014 OR English-to-German`
+- Good: `"scaled dot-product attention" OR "multi-head attention"`
+- Good: `Table 1 OR tab:op_complexities OR O(n)`
+
+Build `lexicalQuery` from the strongest exact-term subset, not from the whole natural-language question. Prefer 2-8 precise terms or phrases. Remove generic words such as `paper`, `according`, `what`, `problem`, `result`, `method`, `model`, and `approach` unless they are part of an exact title or phrase.
+
+Include both acronym and expanded form when either may appear in the paper text:
+
+- `RNN OR recurrent`
+- `CNN OR convolutional`
+- `NMT OR neural machine translation`
+- `RLHF OR reinforcement learning from human feedback`
+
+Use quotes for exact multi-word phrases that should stay together:
+
+- `"long-range dependencies" OR "sequential operations"`
+- `"positional encoding" OR "positional embeddings"`
+
+If the user asks about a precise label, metric, dataset, table, figure, formula, or section, put that exact label in `lexicalQuery` and add likely variants with `OR`:
+
+- `Table 3 OR tab:results OR BLEU`
+- `Figure 2 OR fig:architecture OR architecture`
+- `Section 3.2 OR "scaled dot-product attention"`
+
+If no useful exact lexical terms are known, use a short OR expression from the core technical terms in the user's request. If even that would be noise, pass an empty string for `lexicalQuery` and rely on semantic retrieval.
 
 ## Retrieval Budget and Stop Rules
 
 Use the minimum retrieval needed to answer correctly.
 
 - Start with one focused `query_paper_docs` call for the user’s core question.
-- Retry with a sharper query only when snippets are weak, irrelevant, incomplete, or do not support the answer.
+- Retry with a sharper query and a revised `lexicalQuery` only when snippets are weak, irrelevant, incomplete, or do not support the answer.
 - Do not run extra retrieval only to improve wording or add nonessential background.
 - Stop once the answer can be supported by retrieved snippets and citations.
 

@@ -74,15 +74,22 @@ export default function setup(pi: ExtensionAPI) {
     name: "query_paper_docs",
     label: "Query Paper Docs",
     description:
-      "Retrieve grounded snippets from indexed paper documents using a hybrid semantic query + lexical query",
+      "Retrieve grounded snippets from indexed paper documents using a focused semantic query plus a PostgreSQL web-search lexical query.",
     promptSnippet:
-      "Fetch grounded snippets from an indexed arXiv/paper document by paperId. Prefer resolve_paper_id first when the exact paperId is unknown.",
+      "Fetch grounded snippets from an indexed arXiv/paper document by paperId. Provide a focused natural-language query and an agent-formed lexicalQuery that uses OR for alternatives, acronyms, and terminology variants.",
     promptGuidelines: [
       "Use query_paper_docs only after a paperId is known from resolve_paper_id or from a trusted user-provided paperId.",
       "Before using query_paper_docs, ask the user a clarification question with `rpiv-ask-user-question` when the query is too broad or lacks target concept, claim, section, method, dataset, metric, comparison, table, figure, or output format.",
       "Make query a focused natural-language retrieval request that includes the target concept, section, claim, method, dataset, metric, comparison, table, figure, or desired evidence.",
-      "Only use lexicalQuery for exact strings like quotes, symbols, citation keys, formula tokens, acronyms, dataset names, metric names, table/figure labels, or section titles. Leave it as the best exact-term subset of the query when no quote/label is known.",
-      "For paper RAG, prefer this flow: `rpiv-ask-user-question` -> resolve_paper_id -> query_paper_docs. Retry query_paper_docs with a sharper query if snippets are weak.",
+      "Always form lexicalQuery as a separate exact-term retrieval string. Do not ask the user to handcraft lexicalQuery unless an exact term, label, metric, table, figure, or acronym is genuinely ambiguous and necessary.",
+      "lexicalQuery is parsed by PostgreSQL websearch_to_tsquery. Unquoted space-separated terms behave like AND, so do not use `rnn cnn` when either term should match. Use explicit OR for alternatives: `recurrent OR convolutional OR RNN OR CNN`.",
+      "Use lexicalQuery for quoted phrases, symbols, citation keys, formula tokens, acronyms, dataset names, metric names, table/figure labels, section titles, and obvious terminology variants from the user's request or paper context.",
+      "Prefer 2-8 precise lexical terms or quoted phrases. Remove generic words like paper, according, what, problem, result, method, model, and approach unless they are part of an exact phrase.",
+      "Include both acronym and expanded form when either may appear in the paper text, such as `RNN OR recurrent`, `CNN OR convolutional`, `NMT OR neural machine translation`, or `RLHF OR reinforcement learning from human feedback`.",
+      "Use quotes for exact multi-word phrases that should stay together, such as `\"scaled dot-product attention\" OR \"multi-head attention\"` or `\"long-range dependencies\" OR \"sequential operations\"`.",
+      "For exact labels, include likely variants with OR: `Table 1 OR tab:op_complexities OR O(n)`, `Figure 2 OR fig:architecture`, or `Section 3.2 OR \"scaled dot-product attention\"`.",
+      "If no useful exact lexical terms are known, use a short OR expression from the core technical terms in the user's request. If even that would be noise, pass an empty string for lexicalQuery and rely on semantic retrieval.",
+      "For paper RAG, prefer this flow: `rpiv-ask-user-question` -> resolve_paper_id -> query_paper_docs. Retry query_paper_docs with a sharper query and revised lexicalQuery if snippets are weak.",
       "When answering from snippets, cite the returned section/chunk context and quote exact source text when possible; do not claim evidence that is not present in the retrieved snippets.",
     ],
     parameters: Type.Object({
@@ -94,7 +101,7 @@ export default function setup(pi: ExtensionAPI) {
       }),
       lexicalQuery: Type.String({
         description:
-          "Exact lexical terms for hybrid retrieval: quotes, symbols, formula tokens, acronyms, dataset/metric names, section titles, or table/figure labels.",
+          "Agent-formed PostgreSQL websearch lexical query. Use exact terms, quoted phrases, symbols, formula tokens, acronyms, dataset/metric names, section titles, table/figure labels, and OR-expanded variants such as `recurrent OR convolutional OR RNN OR CNN`.",
       }),
     }),
     //@ts-ignore
