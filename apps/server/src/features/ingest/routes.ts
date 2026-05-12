@@ -44,8 +44,6 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
     "/ingest_paper_source",
     async ({ body, set }) => {
       const arxivId = body.arxivId.replace(/v\d+$/i, "");
-      const paperId = `/arxiv/${arxivId}`;
-      const sourceUrl = `https://arxiv.org/src/${arxivId}`;
 
       // fail before touching db or workspace when a required local tool is missing
       const missing = await ensureIngestTools();
@@ -62,12 +60,12 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       const existingPaper = await db
         .select({ id: papers.id })
         .from(papers)
-        .where(and(eq(papers.id, paperId), isNotNull(papers.ingestedAt)))
+        .where(and(eq(papers.id, body.paperId), isNotNull(papers.ingestedAt)))
         .limit(1);
 
       if (existingPaper.length > 0) {
         return {
-          paperId,
+          paperId: body.paperId,
           arxivId,
           status: "already_ingested" as const,
           message: "Paper source is already ingested.",
@@ -79,7 +77,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       await db
         .insert(ingestionJobs)
         .values({
-          id: paperId,
+          id: body.paperId,
           status: "ingesting",
           error: null,
           startedAt,
@@ -104,7 +102,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
       const sectionsDir = `${workspace}/sections`;
 
       try {
-        console.log(`[ingest] ${paperId} start`);
+        console.log(`[ingest] ${body.paperId} start`);
         const sourceArchiveNamePrefix = `arXiv-${arxivId}v`;
         // look for pre downloaded source archives for this arxiv id
         const sourceArchiveCandidates = (() => {
@@ -124,7 +122,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         await $`mkdir -p ${workspace} ${sourceDir}`;
         if (selectedSourceArchiveName) {
           console.log(
-            `[ingest] ${paperId} using local source archive: ${selectedSourceArchiveName}`,
+            `[ingest] ${body.paperId} using local source archive: ${selectedSourceArchiveName}`,
           );
           // use the newest local archive version when available
           await $`cp ${path.join(rawArchiveDir, selectedSourceArchiveName)} ${sourceArchive}`;
@@ -135,11 +133,11 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         }
 
         await $`tar -xzf ${sourceArchive} -C ${sourceDir}`;
-        console.log(`[ingest] ${paperId} extracted source archive`);
+        console.log(`[ingest] ${body.paperId} extracted source archive`);
 
         // flatten included tex files so pandoc sees one complete latex document
         const mainTex = await findMainTexFile(sourceDir);
-        console.log(`[ingest] ${paperId} main tex: ${mainTex}`);
+        console.log(`[ingest] ${body.paperId} main tex: ${mainTex}`);
         const latexpandBin = Bun.which("latexpand");
         if (!latexpandBin) throw new Error("missing_required_tool_at_runtime: latexpand");
         const latexpandProc = Bun.spawn([latexpandBin, path.basename(mainTex)], {
@@ -157,7 +155,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         }
         const normalizedExpandedTex = normalizeExpandedTexForPandoc(latexpandStdout);
         await Bun.write(expandedTex, normalizedExpandedTex);
-        console.log(`[ingest] ${paperId} wrote expanded tex`);
+        console.log(`[ingest] ${body.paperId} wrote expanded tex`);
 
         // convert latex into markdown while preserving math but dropping raw html passthrough
         const pandocBin = Bun.which("pandoc");
@@ -185,16 +183,16 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         if (pandocExitCode !== 0) {
           throw new Error(`pandoc failed ${pandocStderr}`);
         }
-        console.log(`[ingest] ${paperId} wrote markdown`);
+        console.log(`[ingest] ${body.paperId} wrote markdown`);
 
         // store one retrieval document per markdown heading section
         const markdown = await Bun.file(paperMarkdown).text();
         const sections = splitMarkdown(markdown);
-        console.log(`[ingest] ${paperId} split markdown into ${sections.length} sections`);
+        console.log(`[ingest] ${body.paperId} split markdown into ${sections.length} sections`);
 
         // keep generated section files inspectable before committing rows
-        await writeSectionFiles({ ...body, arxivId, paperId, sourceUrl }, sections, sectionsDir);
-        console.log(`[ingest] ${paperId} wrote section files`);
+        await writeSectionFiles({ ...body, arxivId, paperId: body.paperId, sourceUrl: body.sourceUrl }, sections, sectionsDir);
+        console.log(`[ingest] ${body.paperId} wrote section files`);
 
         // metadata embedding helps resolve this paper namespace later
         const metadataText = [
@@ -203,30 +201,30 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           `Summary: ${body.summary}`,
         ].join("\n");
         const metadataEmbedding = await embed(metadataText);
-        console.log(`[ingest] ${paperId} embedded metadata`);
+        console.log(`[ingest] ${body.paperId} embedded metadata`);
         const sectionEmbeddings: number[][] = [];
         const totalSections = sections.length;
         for (const section of sections) {
           console.log(
-            `[ingest] ${paperId} embedding section ${section.docIndex + 1}/${totalSections}: ${section.sourceFile}`,
+            `[ingest] ${body.paperId} embedding section ${section.docIndex + 1}/${totalSections}: ${section.sourceFile}`,
           );
           const sectionEmbeddingInput = buildSectionEmbeddingText(body.title, section.markdown);
           const sectionEmbedding = await embed(sectionEmbeddingInput);
           sectionEmbeddings.push(sectionEmbedding);
         }
-        console.log(`[ingest] ${paperId} embedded all sections`);
+        console.log(`[ingest] ${body.paperId} embedded all sections`);
         const completedAt = new Date();
 
         await db.transaction(async (tx) => {
           await tx
             .insert(papers)
             .values({
-              id: paperId,
+              id: body.paperId,
               arxivId,
               title: body.title,
               authors: body.authors,
               summary: body.summary,
-              sourceUrl,
+              sourceUrl: body.sourceUrl,
               metadataEmbedding,
               ingestedAt: completedAt,
             })
@@ -236,7 +234,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
                 title: body.title,
                 authors: body.authors,
                 summary: body.summary,
-                sourceUrl,
+                sourceUrl: body.sourceUrl,
                 metadataEmbedding,
                 ingestedAt: completedAt,
               },
@@ -246,8 +244,8 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
             await tx
               .insert(paperDocs)
               .values({
-                id: `${paperId}#${section.docIndex.toString().padStart(3, "0")}`,
-                paperId,
+                id: `${body.paperId}#${section.docIndex.toString().padStart(3, "0")}`,
+                paperId: body.paperId,
                 sectionTitle: section.sectionTitle,
                 markdown: section.markdown,
                 embedding: sectionEmbeddings[section.docIndex],
@@ -265,15 +263,15 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           await tx
             .update(ingestionJobs)
             .set({ status: "completed", error: null, completedAt })
-            .where(eq(ingestionJobs.id, paperId));
+            .where(eq(ingestionJobs.id, body.paperId));
         });
-        console.log(`[ingest] ${paperId} committed to database`);
+        console.log(`[ingest] ${body.paperId} committed to database`);
 
         // only delete the per-paper workspace after the database commit succeeds
         // await $`rm -rf ${workspace}`; // currently commented out to actually see the result
 
         return {
-          paperId,
+          paperId: body.paperId,
           arxivId,
           status: "completed" as const,
           sectionCount: sections.length,
@@ -281,22 +279,22 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         };
       } catch (error) {
         const message = error instanceof Error ? error.message : "Paper source ingestion failed.";
-        console.error(`[ingest] ${paperId} failed: ${message}`);
+        console.error(`[ingest] ${body.paperId} failed: ${message}`);
         try {
           await $`rm -rf ${workspace}`;
-          console.log(`[ingest] ${paperId} cleaned failed workspace`);
+          console.log(`[ingest] ${body.paperId} cleaned failed workspace`);
         } catch (cleanupError) {
           const cleanupMessage =
             cleanupError instanceof Error ? cleanupError.message : "unknown cleanup error";
-          console.error(`[ingest] ${paperId} workspace cleanup failed: ${cleanupMessage}`);
+          console.error(`[ingest] ${body.paperId} workspace cleanup failed: ${cleanupMessage}`);
         }
         await db
           .update(ingestionJobs)
           .set({ status: "failed", error: message, completedAt: new Date() })
-          .where(eq(ingestionJobs.id, paperId));
+          .where(eq(ingestionJobs.id, body.paperId));
 
         return {
-          paperId,
+          paperId: body.paperId,
           arxivId,
           status: "failed" as const,
           message,
