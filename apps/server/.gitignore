@@ -49,6 +49,7 @@ lerna-debug.log*
 
 # local db
 *.db*
+/.ingest/extract/
 
 # typescript
 *.tsbuildinfo

@@ -93,7 +93,7 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
           },
         });
 
-      const workspace = `.ingest/${arxivId.replaceAll("/", "_")}`;
+      const workspace = `.ingest/extract/${arxivId.replaceAll("/", "_")}`;
       const rawArchiveDir = path.resolve(import.meta.dir, "../../..", ".ingest/raw/zip");
       const sourceArchive = `${workspace}/source.tar.gz`;
       const sourceDir = `${workspace}/src`;
