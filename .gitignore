@@ -11,6 +11,7 @@ build
 # Environment variables
 .env
 .env*.local
+apps/tui/.data/
 
 # IDEs and editors
 .vscode/*

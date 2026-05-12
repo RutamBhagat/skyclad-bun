@@ -1,15 +1,12 @@
-# react
-
-To install dependencies:
+# PI Chat TUI
 
 ```bash
 bun install
+bun run dev:tui
 ```
 
-To run:
+Use `/login` to configure ChatGPT Codex OAuth, then send messages in the editor.
 
 ```bash
-bun dev
+bun -F tui check-types
 ```
-
-This project was created using `bun create tui`. [create-tui](https://git.new/create-tui) is the easiest way to get started with OpenTUI.
