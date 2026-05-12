@@ -11,5 +11,6 @@ const chatClient = new ChatClient({
   onPrompt: (message) => app.prompt(message),
 });
 
+await chatClient.loadSettings();
 app = new ChatApp(tui, chatClient);
 app.start();

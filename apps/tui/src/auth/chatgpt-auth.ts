@@ -80,3 +80,9 @@ export async function loginChatGpt(callbacks: ChatGptAuthCallbacks): Promise<str
   await writeAuthFile(auth);
   return credentials.access;
 }
+
+export async function logoutChatGpt(): Promise<void> {
+  const auth = await readAuthFile();
+  delete auth[providerId];
+  await writeAuthFile(auth);
+}
