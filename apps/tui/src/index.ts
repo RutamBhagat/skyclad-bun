@@ -16,4 +16,5 @@ const chatClient = new ChatClient({
 
 await chatClient.loadSettings();
 app = new ChatApp(tui, chatClient);
+await chatClient.bindExtensionUI(app.createExtensionUIContext());
 app.start();

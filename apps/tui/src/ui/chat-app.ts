@@ -1,6 +1,7 @@
-import { CombinedAutocompleteProvider, Container, Editor, fuzzyFilter, Input, Loader, Markdown, matchesKey, Text, TUI, type Focusable, type SlashCommand } from "@earendil-works/pi-tui"
+import { CombinedAutocompleteProvider, Container, Editor, fuzzyFilter, getKeybindings, Input, Loader, Markdown, matchesKey, Text, TUI, type Focusable, type SlashCommand } from "@earendil-works/pi-tui"
 import type { Model, ModelThinkingLevel } from "@earendil-works/pi-ai";
-import { ToolExecutionComponent } from "@earendil-works/pi-coding-agent";
+import { ToolExecutionComponent, type ExtensionUIContext } from "@earendil-works/pi-coding-agent";
+import type { AutocompleteProvider, Component } from "@earendil-works/pi-tui";
 import type { ChatClient } from "../chat/chat-client";
 import { loginChatGpt, logoutChatGpt } from "../auth/chatgpt-auth";
 import { chalk, editorTheme, markdownTheme } from "./theme";
@@ -18,6 +19,25 @@ const slashCommands: SlashCommand[] = [
   { name: "login", description: "Configure provider authentication" },
   { name: "model", description: "Select model (opens selector UI)" },
 ];
+
+function colorTheme() {
+  return {
+    fg: (color: string, text: string) => {
+      if (color === "accent") return chalk.cyan(text);
+      if (color === "muted" || color === "dim") return chalk.dim(text);
+      if (color === "success") return chalk.green(text);
+      if (color === "warning") return chalk.yellow(text);
+      if (color === "error") return chalk.red(text);
+      return text;
+    },
+    bg: (_color: string, text: string) => text,
+    bold: (text: string) => chalk.bold(text),
+    italic: (text: string) => chalk.italic(text),
+    underline: (text: string) => chalk.underline(text),
+    inverse: (text: string) => chalk.inverse(text),
+    strikethrough: (text: string) => chalk.strikethrough(text),
+  };
+}
 
 class LoginProviderSelector extends Container implements Focusable {
   focused = false;
@@ -161,6 +181,86 @@ export class ChatApp {
       return { consume: true };
     });
     this.tui.start();
+  }
+
+  createExtensionUIContext(): ExtensionUIContext {
+    const theme = colorTheme();
+    return {
+      custom: (factory) => this.showExtensionComponent(factory, theme),
+      notify: (message, type) => type === "error" ? this.addMessage("error", message) : this.showStatus(message),
+      pasteToEditor: (text) => this.editor.insertTextAtCursor(text),
+      setEditorText: (text) => this.editor.setText(text),
+      getEditorText: () => this.editor.getText(),
+      get theme() {
+        return theme as any;
+      },
+      select: async () => undefined,
+      confirm: async () => false,
+      input: async () => undefined,
+      onTerminalInput: () => () => {},
+      setStatus: () => {},
+      setWorkingMessage: () => {},
+      setWorkingVisible: () => {},
+      setWorkingIndicator: () => {},
+      setHiddenThinkingLabel: () => {},
+      setWidget: () => {},
+      setFooter: () => {},
+      setHeader: () => {},
+      setTitle: (title) => this.tui.terminal.setTitle(title),
+      editor: async () => undefined,
+      addAutocompleteProvider: (_factory: (current: AutocompleteProvider) => AutocompleteProvider) => {},
+      setEditorComponent: () => {},
+      getEditorComponent: () => undefined,
+      getAllThemes: () => [],
+      getTheme: () => undefined,
+      setTheme: () => ({ success: false, error: "Theme switching is not available in this TUI." }),
+      getToolsExpanded: () => false,
+      setToolsExpanded: () => {},
+    };
+  }
+
+  private showExtensionComponent<T>(
+    factory: Parameters<ExtensionUIContext["custom"]>[0],
+    theme: ReturnType<typeof colorTheme>,
+  ): Promise<T> {
+    const savedText = this.editor.getText();
+    const typedFactory = factory as (
+      tui: TUI,
+      theme: ReturnType<typeof colorTheme>,
+      keybindings: ReturnType<typeof getKeybindings>,
+      done: (result: T) => void,
+    ) => (Component & { dispose?(): void }) | Promise<Component & { dispose?(): void }>;
+    return new Promise((resolve, reject) => {
+      let component: (Component & { dispose?(): void }) | undefined;
+      let closed = false;
+      const finish = (result: T) => {
+        if (closed) return;
+        closed = true;
+        if (component) this.tui.removeChild(component);
+        this.editor.setText(savedText);
+        this.tui.setFocus(this.editor);
+        this.tui.requestRender();
+        component?.dispose?.();
+        resolve(result);
+      };
+
+      Promise.resolve(typedFactory(this.tui, theme, getKeybindings(), finish))
+        .then((created) => {
+          if (closed) return;
+          component = created;
+          const editorIndex = this.tui.children.indexOf(this.editor);
+          this.tui.children.splice(editorIndex, 0, component);
+          this.tui.setFocus(component);
+          this.tui.requestRender();
+        })
+        .catch((error) => {
+          if (closed) return;
+          this.editor.setText(savedText);
+          this.tui.setFocus(this.editor);
+          this.tui.requestRender();
+          reject(error);
+        });
+    });
   }
 
   private addLoadedResources(): void {

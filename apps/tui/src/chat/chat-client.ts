@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { getModel, getModels, type AssistantMessage, type ModelThinkingLevel } from "@earendil-works/pi-ai";
-import { AuthStorage, createAgentSession, parseSkillBlock, SessionManager, SettingsManager } from "@earendil-works/pi-coding-agent";
+import { AuthStorage, createAgentSession, parseSkillBlock, SessionManager, SettingsManager, type ExtensionUIContext } from "@earendil-works/pi-coding-agent";
 import type { ChatMessageView } from "../shared/types";
 import { getChatGptApiKey, type ChatGptAuthCallbacks } from "../auth/chatgpt-auth";
 import { defaultModelId, readChatSettings, writeChatSettings } from "./chat-settings";
@@ -87,6 +87,11 @@ export class ChatClient {
 
   getToolDefinition(name: string) {
     return this.session.getToolDefinition(name);
+  }
+
+  async bindExtensionUI(uiContext: ExtensionUIContext): Promise<void> {
+    const session = await this.getSession();
+    await session.bindExtensions({ uiContext });
   }
 
   private getRequestedSkillName(text: string): string | undefined {
