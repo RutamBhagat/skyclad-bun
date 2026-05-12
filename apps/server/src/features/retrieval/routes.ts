@@ -1,11 +1,17 @@
 import { Elysia, t } from "elysia";
-import { and, db, eq, sql } from "@skyclad-bun/db";
+import { and, asc, db, eq, sql } from "@skyclad-bun/db";
 import { paperDocs, papers } from "@skyclad-bun/db/schema/index";
 import { cosineDistance, desc, isNotNull } from "@skyclad-bun/db";
 
 import { embed } from "../ingest/source-ingest";
+import { addRrfCandidate, formatScore, type RetrievedChunk } from "./rag-helpers";
 
 const markdownContentType = "text/markdown; charset=utf-8";
+
+const paperMatchLimit = 3;
+const semanticCandidateLimit = 80;
+const lexicalCandidateLimit = 80;
+const finalChunkLimit = 8;
 
 export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
   .post(
@@ -13,7 +19,8 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
     async ({ body, set }) => {
       const searchText = `${body.paperName}\n${body.query}`;
       const queryEmbedding = await embed(searchText);
-      const similarity = sql<number>`round((1 - (${cosineDistance(papers.metadataEmbedding, queryEmbedding)}))::numeric, 2)::float8`;
+      const distance = cosineDistance(papers.metadataEmbedding, queryEmbedding);
+      const confidence = sql<number>`1 - (${distance})`;
 
       const rows = await db
         .select({
@@ -23,12 +30,13 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
           authors: papers.authors,
           summary: papers.summary,
           sourceUrl: papers.sourceUrl,
-          confidence: similarity,
+          confidence,
         })
         .from(papers)
         .where(isNotNull(papers.metadataEmbedding))
-        .orderBy((table) => desc(table.confidence))
-        .limit(3);
+        // ORDER BY distance ASC shape so the HNSW index can be used
+        .orderBy(asc(distance))
+        .limit(paperMatchLimit);
 
       set.headers["content-type"] = markdownContentType;
 
@@ -44,7 +52,7 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
             `- Title: ${row.title}`,
             `  Paper ID: ${row.paperId}`,
             `  arXiv ID: ${row.arxivId}`,
-            `  Confidence: ${row.confidence}`,
+            `  Confidence: ${formatScore(Number(row.confidence))}`,
             `  Authors: ${row.authors.join(", ")}`,
             row.summary ? `  Summary: ${row.summary}` : undefined,
             `  Source: ${row.sourceUrl}`,
@@ -65,21 +73,98 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
     "/query_paper_docs",
     async ({ body, set }) => {
       const queryEmbedding = await embed(body.query);
+      // lexical guard is required to prevent unnecessary searches
+      const lexicalQuery = body.lexicalQuery.trim();
 
-      // Rank chunks by one hybrid score so semantic similarity and exact term matches both contribute.
-      const rows = await db
+      const semanticDistance = cosineDistance(paperDocs.embedding, queryEmbedding);
+      const semanticScore = sql<number>`1 - (${semanticDistance})`;
+
+      const semanticRowsPromise = db
         .select({
           chunkId: paperDocs.id,
           section: paperDocs.sectionTitle,
           text: paperDocs.markdown,
-          semanticScore: sql<number>`round((1 - (${cosineDistance(paperDocs.embedding, queryEmbedding)}))::numeric, 2)::float8`,
-          lexicalScore: sql<number>`round(ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${body.lexicalQuery}))::numeric, 2)::float8`,
-          hybridScore: sql<number>`round(((1 - (${cosineDistance(paperDocs.embedding, queryEmbedding)})) + ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${body.lexicalQuery})))::numeric, 2)::float8`,
+          score: semanticScore,
         })
         .from(paperDocs)
         .where(and(eq(paperDocs.paperId, body.paperId), isNotNull(paperDocs.embedding)))
-        .orderBy((table) => desc(table.hybridScore))
-        .limit(3);
+        // ORDER BY embedding <=> query ASC
+        .orderBy(asc(semanticDistance))
+        .limit(semanticCandidateLimit);
+
+      const englishLexicalRowsPromise = lexicalQuery
+        ? db
+            .select({
+              chunkId: paperDocs.id,
+              section: paperDocs.sectionTitle,
+              text: paperDocs.markdown,
+              score: sql<number>`ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${lexicalQuery}), 32)`,
+            })
+            .from(paperDocs)
+            .where(
+              and(
+                eq(paperDocs.paperId, body.paperId),
+                sql`${paperDocs.searchText} @@ websearch_to_tsquery('english', ${lexicalQuery})`,
+              ),
+            )
+            .orderBy(
+              desc(
+                sql<number>`ts_rank_cd(${paperDocs.searchText}, websearch_to_tsquery('english', ${lexicalQuery}), 32)`,
+              ),
+            )
+            .limit(lexicalCandidateLimit)
+        : Promise.resolve([]);
+
+      const simpleLexicalRowsPromise = lexicalQuery
+        ? db
+            .select({
+              chunkId: paperDocs.id,
+              section: paperDocs.sectionTitle,
+              text: paperDocs.markdown,
+              score: sql<number>`ts_rank_cd(${paperDocs.searchTextSimple}, websearch_to_tsquery('simple', ${lexicalQuery}), 32)`,
+            })
+            .from(paperDocs)
+            .where(
+              and(
+                eq(paperDocs.paperId, body.paperId),
+                sql`${paperDocs.searchTextSimple} @@ websearch_to_tsquery('simple', ${lexicalQuery})`,
+              ),
+            )
+            .orderBy(
+              desc(
+                sql<number>`ts_rank_cd(${paperDocs.searchTextSimple}, websearch_to_tsquery('simple', ${lexicalQuery}), 32)`,
+              ),
+            )
+            .limit(lexicalCandidateLimit)
+        : Promise.resolve([]);
+
+      const [semanticRows, englishLexicalRows, simpleLexicalRows] = await Promise.all([
+        semanticRowsPromise,
+        englishLexicalRowsPromise,
+        simpleLexicalRowsPromise,
+      ]);
+
+      const candidates = new Map<string, RetrievedChunk>();
+
+      semanticRows.forEach((row, index) => {
+        addRrfCandidate(candidates, row, index + 1, "semantic");
+      });
+
+      englishLexicalRows.forEach((row, index) => {
+        addRrfCandidate(candidates, row, index + 1, "englishLexical");
+      });
+
+      simpleLexicalRows.forEach((row, index) => {
+        addRrfCandidate(candidates, row, index + 1, "simpleLexical");
+      });
+
+      const rows = Array.from(candidates.values())
+        .sort((left, right) => {
+          const rrfDifference = right.rrfScore - left.rrfScore;
+          if (rrfDifference !== 0) return rrfDifference;
+          return (right.semanticScore ?? -Infinity) - (left.semanticScore ?? -Infinity);
+        })
+        .slice(0, finalChunkLimit);
 
       set.headers["content-type"] = markdownContentType;
 
@@ -88,7 +173,10 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
       return [
         `Relevant documentation for ${body.paperId}:`,
         `Query: ${body.query}`,
-        `Lexical query: ${body.lexicalQuery}`,
+        `Lexical query: ${lexicalQuery || "n/a"}`,
+        `Semantic candidates: ${semanticRows.length}`,
+        `English lexical candidates: ${englishLexicalRows.length}`,
+        `Simple lexical candidates: ${simpleLexicalRows.length}`,
         "",
         ...rows.flatMap((row, index) => [
           ...(index > 0 ? ["---"] : []),
@@ -96,9 +184,13 @@ export const retrievalRoutes = new Elysia({ prefix: "/api/retrieval" })
             `## ${row.section}`,
             "",
             `Chunk ID: ${row.chunkId}`,
-            `Hybrid score: ${row.hybridScore}`,
-            `Semantic score: ${row.semanticScore}`,
-            `Lexical score: ${row.lexicalScore}`,
+            `RRF score: ${formatScore(row.rrfScore)}`,
+            `Semantic rank: ${row.semanticRank ?? "n/a"}`,
+            `Semantic score: ${formatScore(row.semanticScore)}`,
+            `English lexical rank: ${row.englishLexicalRank ?? "n/a"}`,
+            `English lexical score: ${formatScore(row.englishLexicalScore)}`,
+            `Simple lexical rank: ${row.simpleLexicalRank ?? "n/a"}`,
+            `Simple lexical score: ${formatScore(row.simpleLexicalScore)}`,
             "",
             row.text,
           ].join("\n"),
