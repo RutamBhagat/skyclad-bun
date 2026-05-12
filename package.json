@@ -20,7 +20,6 @@
     "dev": "turbo dev",
     "build": "turbo build",
     "check-types": "turbo check-types",
-    "dev:web": "turbo -F web dev",
     "dev:tui": "turbo -F tui dev",
     "dev:server": "turbo -F server dev",
     "db:push": "turbo -F @skyclad-bun/db db:push",
