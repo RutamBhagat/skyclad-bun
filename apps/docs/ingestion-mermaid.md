@@ -84,7 +84,6 @@ sequenceDiagram
     end
 ```
 
-
 ```mermaid
 flowchart TD
     A[User selects paper] --> B[Resolve arXiv target]

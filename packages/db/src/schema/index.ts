@@ -1,13 +1,5 @@
 import { sql, type SQL } from "drizzle-orm";
-import {
-  customType,
-  index,
-  jsonb,
-  pgTable,
-  text,
-  timestamp,
-  vector,
-} from "drizzle-orm/pg-core";
+import { customType, index, jsonb, pgTable, text, timestamp, vector } from "drizzle-orm/pg-core";
 
 export const embeddingDimensions = 1536;
 
@@ -60,10 +52,7 @@ export const paperDocs = pgTable(
   (table) => [
     index("paper_docs_paper_id_idx").on(table.paperId),
     // native pgvector HNSW index
-    index("paper_docs_embedding_hnsw_idx").using(
-      "hnsw",
-      table.embedding.op("vector_cosine_ops"),
-    ),
+    index("paper_docs_embedding_hnsw_idx").using("hnsw", table.embedding.op("vector_cosine_ops")),
     index("paper_docs_search_text_idx").using("gin", table.searchText),
   ],
 );

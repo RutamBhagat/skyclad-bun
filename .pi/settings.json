@@ -1,5 +1,3 @@
 {
-  "packages": [
-    "npm:@juicesharp/rpiv-ask-user-question"
-  ]
+  "packages": ["npm:@juicesharp/rpiv-ask-user-question"]
 }

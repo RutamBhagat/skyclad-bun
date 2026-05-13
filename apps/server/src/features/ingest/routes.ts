@@ -191,7 +191,11 @@ export const ingestRoutes = new Elysia({ prefix: "/api/ingest" })
         console.log(`[ingest] ${body.paperId} split markdown into ${sections.length} sections`);
 
         // keep generated section files inspectable before committing rows
-        await writeSectionFiles({ ...body, arxivId, paperId: body.paperId, sourceUrl: body.sourceUrl }, sections, sectionsDir);
+        await writeSectionFiles(
+          { ...body, arxivId, paperId: body.paperId, sourceUrl: body.sourceUrl },
+          sections,
+          sectionsDir,
+        );
         console.log(`[ingest] ${body.paperId} wrote section files`);
 
         // metadata embedding helps resolve this paper namespace later

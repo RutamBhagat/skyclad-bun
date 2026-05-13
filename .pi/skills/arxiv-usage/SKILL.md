@@ -10,6 +10,7 @@ description: Answer user questions about papers from grounded evidence, using th
 ### Goal
 
 Success means:
+
 - the intended paper or topic is clear enough to search;
 - the paper is resolved to a valid indexed `paperId` before document retrieval;
 - the answer is supported by retrieved snippets, with citations to the returned paper, section, and chunk context;

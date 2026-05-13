@@ -21,7 +21,7 @@ User query
 Top 3 Markdown chunks returned as RAG context
 ```
 
-The uploaded retrieval route defines two main endpoints: `/resolve_paper_id` and `/query_paper_docs`, with limits of 3 paper matches, 80 semantic candidates, 80 lexical candidates, and 3 final returned chunks. 
+The uploaded retrieval route defines two main endpoints: `/resolve_paper_id` and `/query_paper_docs`, with limits of 3 paper matches, 80 semantic candidates, 80 lexical candidates, and 3 final returned chunks.
 
 ---
 
@@ -30,15 +30,14 @@ The uploaded retrieval route defines two main endpoints: `/resolve_paper_id` and
 Endpoint:
 
 ```ts
-POST /api/retrieval/resolve_paper_id
+POST / api / retrieval / resolve_paper_id;
 ```
 
 Input:
 
 ```ts
 {
-  paperName,
-  query
+  (paperName, query);
 }
 ```
 
@@ -51,7 +50,7 @@ const searchText = `${body.paperName}\n${body.query}`;
 Then it embeds that combined text and compares it against:
 
 ```ts
-papers.metadataEmbedding
+papers.metadataEmbedding;
 ```
 
 using cosine distance:
@@ -65,7 +64,7 @@ So this stage answers:
 
 > “Which paper is the user probably asking about?”
 
-It returns the top 3 likely papers, including title, paper ID, arXiv ID, confidence, authors, summary, and source URL. 
+It returns the top 3 likely papers, including title, paper ID, arXiv ID, confidence, authors, summary, and source URL.
 
 ### Why this stage exists
 
@@ -88,16 +87,14 @@ This is a strong design for academic-paper retrieval because many papers may sha
 Endpoint:
 
 ```ts
-POST /api/retrieval/query_paper_docs
+POST / api / retrieval / query_paper_docs;
 ```
 
 Input:
 
 ```ts
 {
-  paperId,
-  query,
-  lexicalQuery
+  (paperId, query, lexicalQuery);
 }
 ```
 
@@ -126,7 +123,7 @@ const queryEmbedding = await embed(body.query);
 Then compares it against section embeddings:
 
 ```ts
-paperDocs.embedding
+paperDocs.embedding;
 ```
 
 using cosine distance:
@@ -166,7 +163,7 @@ even if the exact phrase “reward model” appears only lightly or indirectly.
 The lexical path uses Postgres full-text search:
 
 ```ts
-websearch_to_tsquery('simple', lexicalQuery)
+websearch_to_tsquery("simple", lexicalQuery);
 ```
 
 and ranks matches using:
@@ -185,13 +182,13 @@ This is the exact-term / keyword channel.
 
 It is especially useful for:
 
-* acronyms
-* method names
-* benchmark names
-* equations or symbols represented as text
-* dataset names
-* citation terms
-* rare technical phrases
+- acronyms
+- method names
+- benchmark names
+- equations or symbols represented as text
+- dataset names
+- citation terms
+- rare technical phrases
 
 Example:
 
@@ -216,7 +213,7 @@ const rrfK = 60;
 Each candidate gets:
 
 ```ts
-1 / (rrfK + rank)
+1 / (rrfK + rank);
 ```
 
 So a rank-1 hit contributes:
@@ -268,7 +265,7 @@ semanticScore desc
 Finally it returns:
 
 ```ts
-finalChunkLimit = 3
+finalChunkLimit = 3;
 ```
 
 So the final output is the top 3 fused chunks.
@@ -277,12 +274,7 @@ Each chunk includes:
 
 ```ts
 {
-  chunkId,
-  section,
-  text,
-  rrfScore,
-  semanticScore,
-  lexicalScore
+  (chunkId, section, text, rrfScore, semanticScore, lexicalScore);
 }
 ```
 
@@ -399,8 +391,8 @@ return no result if:
 The API separates:
 
 ```ts
-query
-lexicalQuery
+query;
+lexicalQuery;
 ```
 
 That gives flexibility, but it means another layer must generate a good lexical query. If `lexicalQuery` is poor or empty, the system becomes semantic-only.

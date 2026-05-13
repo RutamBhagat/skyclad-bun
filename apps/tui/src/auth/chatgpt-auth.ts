@@ -17,7 +17,8 @@ export function createChatAuthStorage(): AuthStorage {
 }
 
 function openBrowser(url: string): void {
-  const command = process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
+  const command =
+    process.platform === "darwin" ? "open" : process.platform === "win32" ? "start" : "xdg-open";
   exec(`${command} "${url}"`);
 }
 
@@ -31,9 +32,11 @@ export async function loginChatGpt(callbacks: ChatAuthCallbacks): Promise<void> 
     onAuth: (info) => {
       callbacks.onStatus(`${info.instructions ?? "Open this URL to log in:"}\n${info.url}`);
       openBrowser(info.url);
-      void callbacks.onPrompt("Paste redirect URL below, or complete login in browser:").then((value) => {
-        if (value && manualCodeResolve) manualCodeResolve(value);
-      });
+      void callbacks
+        .onPrompt("Paste redirect URL below, or complete login in browser:")
+        .then((value) => {
+          if (value && manualCodeResolve) manualCodeResolve(value);
+        });
     },
     onPrompt: (prompt) => callbacks.onPrompt(prompt.message),
     onProgress: callbacks.onStatus,

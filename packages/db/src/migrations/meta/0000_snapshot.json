@@ -170,12 +170,8 @@
           "name": "paper_docs_paper_id_papers_id_fk",
           "tableFrom": "paper_docs",
           "tableTo": "papers",
-          "columnsFrom": [
-            "paper_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
+          "columnsFrom": ["paper_id"],
+          "columnsTo": ["id"],
           "onDelete": "cascade",
           "onUpdate": "no action"
         }
@@ -263,9 +259,7 @@
         "papers_arxiv_id_unique": {
           "name": "papers_arxiv_id_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "arxiv_id"
-          ]
+          "columns": ["arxiv_id"]
         }
       },
       "policies": {},

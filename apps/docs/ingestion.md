@@ -52,7 +52,7 @@ This searches arXiv by title:
 const searchQuery = `ti:"${body.paperName}"`;
 ```
 
-It calls the arXiv API and parses up to 3 candidate papers. This endpoint only resolves likely targets; it does **not** ingest the source. 
+It calls the arXiv API and parses up to 3 candidate papers. This endpoint only resolves likely targets; it does **not** ingest the source.
 
 #### `POST /api/ingest/ingest_paper_source`
 
@@ -60,16 +60,11 @@ This is the actual ingestion endpoint. It accepts:
 
 ```ts
 {
-  arxivId,
-  paperId,
-  title,
-  authors,
-  summary,
-  sourceUrl
+  (arxivId, paperId, title, authors, summary, sourceUrl);
 }
 ```
 
-It normalizes versioned arXiv IDs by stripping suffixes like `v2`, checks local tooling, records an ingestion job, processes the source archive, embeds content, and commits rows to Postgres. 
+It normalizes versioned arXiv IDs by stripping suffixes like `v2`, checks local tooling, records an ingestion job, processes the source archive, embeds content, and commits rows to Postgres.
 
 ## Storage model
 
@@ -164,7 +159,7 @@ Before touching the DB or workspace, ingestion checks required local tools:
 const ingestTools = ["tar", "latexpand", "pandoc"];
 ```
 
-If any are missing, the request fails early. 
+If any are missing, the request fails early.
 
 ### 2. Idempotency check
 
@@ -173,23 +168,23 @@ Before starting expensive work, the route checks whether this exact `paperId` al
 If yes, it returns:
 
 ```ts
-status: "already_ingested"
+status: "already_ingested";
 ```
 
-This prevents repeated ingestion of completed papers. 
+This prevents repeated ingestion of completed papers.
 
 ### 3. Create or reset the ingestion job
 
 The system inserts or updates `ingestion_jobs` with:
 
 ```ts
-status: "ingesting"
-error: null
-startedAt
-completedAt: null
+status: "ingesting";
+error: null;
+startedAt;
+completedAt: null;
 ```
 
-So repeated attempts overwrite the prior job status before starting fresh. 
+So repeated attempts overwrite the prior job status before starting fresh.
 
 ### 4. Locate source archive
 
@@ -199,7 +194,7 @@ This implementation currently expects the arXiv source archive to already exist 
 .ingest/raw/zip/arXiv-<arxivId>v*.tar.gz
 ```
 
-It selects the newest local version by sorting matching archive filenames. It does **not** currently download source from `sourceUrl`; it throws if the archive is missing. 
+It selects the newest local version by sorting matching archive filenames. It does **not** currently download source from `sourceUrl`; it throws if the archive is missing.
 
 That is an important architecture point: the ingestion endpoint is really a **local-source ingestion worker**, not a full remote downloader.
 
@@ -231,7 +226,7 @@ Selection rules:
 2. Prefer common names like `main.tex`, `paper.tex`, `ms.tex`, `article.tex`, `arxiv.tex`.
 3. Otherwise use the largest document file.
 
-This is a pragmatic heuristic for messy arXiv source trees. 
+This is a pragmatic heuristic for messy arXiv source trees.
 
 ### 7. Expand LaTeX includes
 
@@ -246,21 +241,21 @@ multi-file LaTeX project
 single expanded.tex
 ```
 
-This gives Pandoc a more complete document instead of a root file full of `\input{...}` or `\include{...}` references. 
+This gives Pandoc a more complete document instead of a root file full of `\input{...}` or `\include{...}` references.
 
 ### 8. Normalize LaTeX for Pandoc
 
 Before Pandoc conversion, the code sanitizes known problematic constructs:
 
-* toggle conditionals
-* figures
-* tables
-* TikZ pictures
-* listings / minted code blocks
-* standalone `\includegraphics`
-* dangling environment endings
+- toggle conditionals
+- figures
+- tables
+- TikZ pictures
+- listings / minted code blocks
+- standalone `\includegraphics`
+- dangling environment endings
 
-This is a lossy but practical step. The goal is not perfect document reproduction; it is retrieval-quality text extraction. 
+This is a lossy but practical step. The goal is not perfect document reproduction; it is retrieval-quality text extraction.
 
 ### 9. Convert LaTeX to Markdown
 
@@ -270,7 +265,7 @@ Pandoc converts the normalized expanded TeX into Markdown:
 expanded.tex → paper.md
 ```
 
-The Pandoc settings preserve math with dollar syntax and disable raw HTML / raw attributes. It also caps the Pandoc heap with `-M1024m`, which is useful because arXiv LaTeX sources can be large or malformed. 
+The Pandoc settings preserve math with dollar syntax and disable raw HTML / raw attributes. It also caps the Pandoc heap with `-M1024m`, which is useful because arXiv LaTeX sources can be large or malformed.
 
 ### 10. Split Markdown into retrieval sections
 
@@ -289,16 +284,16 @@ The splitter creates one document per heading section:
 It tracks:
 
 ```ts
-sectionTitle
-sectionPath
-sectionLevel
-sectionKind
-markdown
-sourceFile
-docIndex
+sectionTitle;
+sectionPath;
+sectionLevel;
+sectionKind;
+markdown;
+sourceFile;
+docIndex;
 ```
 
-It drops sections whose body is shorter than 120 characters and splits oversized sections over 10,000 characters. If the converted Markdown has no headings, it stores the whole thing as an `"Abstract"` fallback section. 
+It drops sections whose body is shorter than 120 characters and splits oversized sections over 10,000 characters. If the converted Markdown has no headings, it stores the whole thing as an `"Abstract"` fallback section.
 
 ### 11. Write debug section files
 
@@ -308,7 +303,7 @@ Before committing to the DB, the system writes section Markdown files into:
 .ingest/<arxivId>/sections
 ```
 
-Each file includes YAML frontmatter with paper ID, arXiv ID, section path, and source file. This makes ingestion inspectable and debuggable. 
+Each file includes YAML frontmatter with paper ID, arXiv ID, section path, and source file. This makes ingestion inspectable and debuggable.
 
 ### 12. Generate embeddings
 
@@ -327,7 +322,7 @@ Summary: ...
 Stored in:
 
 ```ts
-papers.metadataEmbedding
+papers.metadataEmbedding;
 ```
 
 Used to resolve the paper namespace later.
@@ -340,19 +335,19 @@ For each section, the pipeline builds embedding text from:
 title: <paper title> | text: <section plain text>
 ```
 
-It strips tables, keeps normal text, and includes code raw text where applicable. 
+It strips tables, keeps normal text, and includes code raw text where applicable.
 
 Embeddings are generated through Ollama:
 
 ```ts
-model: "qwen3-embedding:8b"
-dimensions: 1536
+model: "qwen3-embedding:8b";
+dimensions: 1536;
 ```
 
 Stored in:
 
 ```ts
-paper_docs.embedding
+paper_docs.embedding;
 ```
 
 ### 13. Commit transactionally
@@ -363,7 +358,7 @@ The final DB write happens inside one transaction:
 2. Upsert each `paper_docs` section
 3. Mark `ingestion_jobs.status = "completed"`
 
-This means the paper and its sections are committed together. If anything fails before this point, the job is marked failed and the workspace is cleaned up. 
+This means the paper and its sections are committed together. If anything fails before this point, the job is marked failed and the workspace is cleaned up.
 
 ## Retrieval architecture implied by this ingestion design
 
@@ -383,13 +378,13 @@ This is better than dumping all sections from all papers into one global vector 
 
 ## Strengths
 
-* **Clear namespace separation:** `papers` resolves the paper; `paper_docs` searches inside it.
-* **Hybrid retrieval-ready:** semantic vectors plus full-text `tsvector`.
-* **Good technical-term handling:** `to_tsvector('simple', ...)` is sensible for papers.
-* **Operational visibility:** `ingestion_jobs` records status and errors.
-* **Idempotency for completed papers:** repeated calls do not redo completed ingestion.
-* **Transactional final write:** avoids partially completed DB commits.
-* **Debuggable artifacts:** section files remain inspectable in `.ingest`.
+- **Clear namespace separation:** `papers` resolves the paper; `paper_docs` searches inside it.
+- **Hybrid retrieval-ready:** semantic vectors plus full-text `tsvector`.
+- **Good technical-term handling:** `to_tsvector('simple', ...)` is sensible for papers.
+- **Operational visibility:** `ingestion_jobs` records status and errors.
+- **Idempotency for completed papers:** repeated calls do not redo completed ingestion.
+- **Transactional final write:** avoids partially completed DB commits.
+- **Debuggable artifacts:** section files remain inspectable in `.ingest`.
 
 ## Main weaknesses / risks
 
