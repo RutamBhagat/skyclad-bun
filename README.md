@@ -25,6 +25,9 @@ Runtime flow:
 
 This keeps the backend deterministic, cheap, fast and inspectable. The system can explain which chunks won because every returned section includes its paper ID, chunk ID, RRF score, semantic score, and lexical score
 
+see [apps/docs/ingestion.md](apps/docs/ingestion.md) for more detailed ingestion architechture diagram
+see [apps/docs/retrieval.md](apps/docs/retrieval.md) for more detailed retrieval architechture diagram
+
 ## Ingestion
 
 arXiv7 uses arXiv's TeX source archives instead of PDFs. PDF extraction loses too much structure in technical papers, especially around equations, tables, and section boundaries

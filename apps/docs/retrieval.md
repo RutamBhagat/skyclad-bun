@@ -37,7 +37,7 @@ Input:
 
 ```ts
 {
-  (paperName, query);
+  paperName, query
 }
 ```
 
@@ -78,7 +78,7 @@ papers
         └── chunks for one resolved paper
 ```
 
-This is a strong design for academic-paper retrieval because many papers may share terms like “attention,” “alignment,” “diffusion,” “benchmark,” or “transformer.” Resolving the paper first reduces cross-paper noise.
+This is a better design for academic-paper retrieval because many papers may share terms like “attention,” “alignment,” “diffusion,” “benchmark,” or “transformer.” Resolving the paper first reduces cross-paper noise
 
 ---
 
@@ -94,7 +94,7 @@ Input:
 
 ```ts
 {
-  (paperId, query, lexicalQuery);
+  paperId, query, lexicalQuery
 }
 ```
 
@@ -139,22 +139,6 @@ Rows are ordered by nearest vector distance:
 .orderBy(asc(semanticDistance))
 .limit(semanticCandidateLimit)
 ```
-
-So the semantic retriever finds sections that are conceptually similar to the query, even if they do not share exact wording.
-
-Example:
-
-```txt
-Query: "How do they train the reward model?"
-```
-
-could retrieve a section titled:
-
-```txt
-Preference Optimization
-```
-
-even if the exact phrase “reward model” appears only lightly or indirectly.
 
 ---
 
@@ -244,7 +228,7 @@ AND/OR
 lexically exact
 ```
 
-But chunks appearing in both channels get a natural boost.
+But chunks appearing in both channels get a higher weightage
 
 ---
 
@@ -274,7 +258,7 @@ Each chunk includes:
 
 ```ts
 {
-  (chunkId, section, text, rrfScore, semanticScore, lexicalScore);
+  chunkId, section, text, rrfScore, semanticScore, lexicalScore
 }
 ```
 
@@ -299,40 +283,13 @@ Lexical score: ...
 
 ## Architecture diagram
 
-```mermaid
-flowchart TD
-    A[User query] --> B[Resolve paper ID]
-
-    B --> C[Embed paperName + query]
-    C --> D[Search papers.metadataEmbedding]
-    D --> E[Return top paper matches]
-
-    E --> F[Selected paperId]
-    F --> G[Query paper docs]
-
-    G --> H[Embed user query]
-    H --> I[Semantic search<br/>paper_docs.embedding]
-    I --> J[Top 80 semantic chunks]
-
-    G --> K[Build lexical query]
-    K --> L[Postgres full-text search<br/>paper_docs.searchText]
-    L --> M[Top 80 lexical chunks]
-
-    J --> N[RRF fusion]
-    M --> N
-
-    N --> O[Sort by RRF score]
-    O --> P[Tie-break by semantic score]
-    P --> Q[Return top 3 chunks]
-```
+![Retrieval](./retrieval.png)
 
 ---
 
-## What kind of retrieval system this is
+## Retrieval System
 
-This is best described as:
-
-> A **namespace-first hybrid RAG retriever** using paper-level vector resolution, section-level semantic search, section-level lexical search, and Reciprocal Rank Fusion to return the top Markdown chunks as context.
+This is a namespace-first hybrid RAG retriever, using paper-level vector resolution, section-level semantic search, section-level lexical search, and Reciprocal Rank Fusion to return the top Markdown chunks as context
 
 Or more compactly:
 
@@ -343,70 +300,3 @@ section-level hybrid retrieval
         +
 RRF reranking
 ```
-
----
-
-## Strengths
-
-### Good separation of concerns
-
-The system does not search chunks immediately. It first resolves the paper, then searches inside the paper. That is clean and usually better for multi-paper corpora.
-
-### Hybrid search is the right call
-
-Semantic search catches conceptual matches. Lexical search catches exact technical terms. For research papers, you usually need both.
-
-### RRF is a sensible fusion strategy
-
-RRF avoids trying to directly compare incompatible score scales:
-
-```txt
-cosine similarity score ≠ ts_rank_cd score
-```
-
-Instead, it fuses by rank, which is more robust.
-
-### Markdown output is agent-friendly
-
-The endpoint returns Markdown with section names, chunk IDs, and scores, which makes it usable as direct RAG context.
-
----
-
-## Weak spots
-
-### No score threshold
-
-The system always returns the top 3 chunks if anything exists. That can return weak context when the query is unrelated to the paper.
-
-A useful addition would be a minimum threshold, for example:
-
-```txt
-return no result if:
-  semanticScore < X
-  and lexicalScore is missing
-```
-
-### Lexical quality depends on caller-supplied `lexicalQuery`
-
-The API separates:
-
-```ts
-query;
-lexicalQuery;
-```
-
-That gives flexibility, but it means another layer must generate a good lexical query. If `lexicalQuery` is poor or empty, the system becomes semantic-only.
-
-### RRF ignores score magnitude
-
-A semantic rank-1 result with score `0.90` and another with score `0.61` both get the same rank contribution if they appear at the same rank position in their respective lists. RRF is robust, but it hides confidence strength.
-
-### No reranker
-
-The final top 3 are selected by RRF, not by a cross-encoder or LLM reranker. For many cases that is fine, but for hard scientific questions, a reranking layer could improve precision.
-
----
-
-## Best one-line description
-
-This retrieval architecture uses **paper-level vector routing followed by section-level hybrid search, where semantic and lexical candidates are merged with Reciprocal Rank Fusion and returned as the top 3 Markdown chunks for RAG context.**
