@@ -267,6 +267,11 @@ export async function embed(input: string) {
       dimensions: embeddingDimensions,
       truncate: true,
     }),
+  }).catch((error) => {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Ollama embedding request failed at ${ollamaEmbedUrl}. Ensure Ollama is running and OLLAMA_BASE_URL is correct. Original error: ${message}`,
+    );
   });
   if (!response.ok) {
     throw new Error(`Ollama embedding failed: ${response.status} ${await response.text()}`);
