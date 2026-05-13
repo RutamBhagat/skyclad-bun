@@ -57,17 +57,32 @@ cd apps/server/.ingest/raw
 ```
 
 - Note: Initially i was using `Gemini Embedding 2` model but on free tier it has heavy rate limits and was running out of daily quota mid way through embedding process
-- ideally we should be using a cloud embedding model but in order to save costs I decided to go with the local `qwen3-embedding:8b` model, the biggest tradeoff for this is heavy local resource usage and much much slower ingestion times
+- ideally we should be using a cloud embedding model but in order to save costs I decided to go with the local `qwen3-embedding:8b` model, the biggest tradeoff for this is heavy local resource usage and much much slower ingestion times if you do not have a gpu
 - you can open a new browser tab and navigate to `https://local.drizzle.studio/` to see the ingested papers paper_docs, chunks search_text and embeddings along with the ingestion jobs that succeeded or failed or are currently in the middle of ingestion
 - you can also use `btop` and `htop` to track the system resources being used by the resource intensive `ollama` and `pandoc` processes
 - other useful commands
 ```bash
 ollama ps
 ```
-if the output is something like this, it means that ollama can not use your GPU and is using your CPU instead, and the hence the embedding will be much much slower
+- if the output is something like this, it means that ollama can use your GPU, and it will take around 10 seconds to ingest each paper, depending on the gpu you have
+- total ingestion time should take around 4:30 min
+```bash
+NAME                  ID              SIZE      PROCESSOR    CONTEXT    UNTIL              
+qwen3-embedding:8b    64b933495768    6.2 GB    100% GPU     4096       4 minutes from now
+```
+- but if the output is something like this, it means that ollama can not use your GPU and is using your CPU instead, and the hence the embedding will be much much slower
 ```bash
     NAME                  ID              SIZE      PROCESSOR    CONTEXT    UNTIL
     qwen3-embedding:8b    64b933495768    6.1 GB    100% CPU     4096       4 minutes from now
 ```
-- `ollama` takes around 6GB of RAM with arund 4.5 GHz CPU and `pandoc` takes around 2GB of RAM
-- it takes roughly around 2 minutes to ingest 1 paper so 50 papers would take around 100 minutes
+
+7. Test the TUI
+- go back to your `bun run dev` terminal tab and select tui using up and down arrow then press `i` to interatct with the chat terminal
+- about the chat input box you might see something like this
+```bash
+ [Skills]                                                                                                       
+   arxiv-usage                                                                                                  
+ [Extensions]                                                                                                   
+   @juicesharp/rpiv-ask-user-question, arxiv  
+```
+- these are the repo specific skill instructions and tui extensions from `./pi` dir, out of which only the `@juicesharp/rpiv-ask-user-question` is an external package, the rest are custom skill/extension/tools you may read their contents from `.pi/extensions/arxiv/index.ts` and `.pi/skills/arxiv-usage/SKILL.md`
