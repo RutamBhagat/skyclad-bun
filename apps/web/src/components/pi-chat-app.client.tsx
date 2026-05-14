@@ -210,6 +210,10 @@ export default function PiChatApp() {
 
       sessionRef.current.agent = agent;
       unsubscribeRef.current = agent.subscribe((event) => {
+        if (event.type === "message_end") {
+          agent.state.messages = [...agent.state.messages];
+        }
+
         if (event.type !== "message_end" && event.type !== "agent_end") return;
 
         const messages = agent.state.messages;
