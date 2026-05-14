@@ -224,6 +224,13 @@ export default function PiChatApp() {
         if (sessionRef.current.currentSessionId) {
           void saveSession();
         }
+
+        if (event.type === "agent_end") {
+          void agent.waitForIdle().then(() => {
+            if (sessionRef.current.agent !== agent) return;
+            chatPanel.agentInterface?.requestUpdate();
+          });
+        }
       });
 
       await chatPanel.setAgent(agent, {
