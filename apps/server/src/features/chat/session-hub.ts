@@ -272,6 +272,26 @@ export class ChatSessionHub {
     return this.snapshot(record);
   }
 
+  async setModel(
+    sessionId: string,
+    model: { provider: string; id: string },
+  ): Promise<SessionSnapshot> {
+    const record = this.requireSession(sessionId);
+    record.runtime.session.state.model = getModel(model.provider as any, model.id as any);
+    this.broadcast(record.sessionId, "snapshot", this.snapshot(record));
+    return this.snapshot(record);
+  }
+
+  async setThinkingLevel(
+    sessionId: string,
+    thinkingLevel: ThinkingLevel,
+  ): Promise<SessionSnapshot> {
+    const record = this.requireSession(sessionId);
+    record.runtime.session.state.thinkingLevel = thinkingLevel;
+    this.broadcast(record.sessionId, "snapshot", this.snapshot(record));
+    return this.snapshot(record);
+  }
+
   createEventStream(sessionId: string): Response {
     const record = this.requireSession(sessionId);
 

@@ -101,4 +101,50 @@ export const chatRoutes = new Elysia({ prefix: "/api/chat" })
         title: t.String(),
       }),
     },
+  )
+  .patch(
+    "/sessions/:sessionId/model",
+    async ({ params, body, set }) => {
+      try {
+        return await chatSessionHub.setModel(params.sessionId, body.model);
+      } catch (error) {
+        set.status = 404;
+        return {
+          error: error instanceof Error ? error.message : "Session not found",
+        };
+      }
+    },
+    {
+      body: t.Object({
+        model: t.Object({
+          provider: t.String(),
+          id: t.String(),
+        }),
+      }),
+    },
+  )
+  .patch(
+    "/sessions/:sessionId/thinking",
+    async ({ params, body, set }) => {
+      try {
+        return await chatSessionHub.setThinkingLevel(params.sessionId, body.thinkingLevel);
+      } catch (error) {
+        set.status = 404;
+        return {
+          error: error instanceof Error ? error.message : "Session not found",
+        };
+      }
+    },
+    {
+      body: t.Object({
+        thinkingLevel: t.Union([
+          t.Literal("off"),
+          t.Literal("minimal"),
+          t.Literal("low"),
+          t.Literal("medium"),
+          t.Literal("high"),
+          t.Literal("xhigh"),
+        ]),
+      }),
+    },
   );

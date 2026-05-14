@@ -44,11 +44,19 @@ export class RemoteChatSession {
     (event: RemoteSessionEvent) => void | Promise<void>
   >();
   private eventSource?: EventSource;
+  private title: string;
+  private stateModel: ServerModel | undefined;
+  private stateThinkingLevel: ThinkingLevel;
+  private suppressStateSync = false;
 
   constructor(
     public sessionId: string,
     snapshot: ServerSessionSnapshot,
   ) {
+    this.title = snapshot.title;
+    this.stateModel = snapshot.model;
+    this.stateThinkingLevel = snapshot.thinkingLevel;
+
     this.state = {
       systemPrompt: "",
       model: snapshot.model,
@@ -59,6 +67,25 @@ export class RemoteChatSession {
       streamingMessage: undefined,
       pendingToolCalls: new Set(),
     };
+
+    Object.defineProperties(this.state, {
+      model: {
+        enumerable: true,
+        configurable: true,
+        get: () => this.stateModel,
+        set: (model: ServerModel | undefined) => {
+          void this.syncModel(model);
+        },
+      },
+      thinkingLevel: {
+        enumerable: true,
+        configurable: true,
+        get: () => this.stateThinkingLevel,
+        set: (thinkingLevel: ThinkingLevel) => {
+          void this.syncThinkingLevel(thinkingLevel);
+        },
+      },
+    });
 
     this.connect();
   }
@@ -72,22 +99,33 @@ export class RemoteChatSession {
 
   async prompt(text: string) {
     this.state.isStreaming = true;
-    return await this.request<ServerSessionSnapshot>(
-      `/api/chat/sessions/${encodeURIComponent(this.sessionId)}/prompt`,
-      {
-        method: "POST",
-        body: JSON.stringify({ text }),
-      },
-    );
+    try {
+      return await this.request<ServerSessionSnapshot>(
+        `/api/chat/sessions/${encodeURIComponent(this.sessionId)}/prompt`,
+        {
+          method: "POST",
+          body: JSON.stringify({ text }),
+        },
+      );
+    } catch (error) {
+      this.state.isStreaming = false;
+      this.state.streamingMessage = undefined;
+      throw error;
+    }
   }
 
   async abort() {
-    return await this.request<ServerSessionSnapshot>(
-      `/api/chat/sessions/${encodeURIComponent(this.sessionId)}/abort`,
-      {
-        method: "POST",
-      },
-    );
+    try {
+      return await this.request<ServerSessionSnapshot>(
+        `/api/chat/sessions/${encodeURIComponent(this.sessionId)}/abort`,
+        {
+          method: "POST",
+        },
+      );
+    } finally {
+      this.state.isStreaming = false;
+      this.state.streamingMessage = undefined;
+    }
   }
 
   async waitForIdle() {
@@ -109,10 +147,64 @@ export class RemoteChatSession {
     );
   }
 
+  async setModel(model: ServerModel | undefined) {
+    await this.syncModel(model);
+    return this.snapshot();
+  }
+
+  async setThinkingLevel(thinkingLevel: ThinkingLevel) {
+    await this.syncThinkingLevel(thinkingLevel);
+    return this.snapshot();
+  }
+
   dispose() {
     this.eventSource?.close();
     this.eventSource = undefined;
     this.listeners.clear();
+  }
+
+  private async syncModel(model: ServerModel | undefined) {
+    const previous = this.stateModel;
+    this.stateModel = model;
+
+    if (this.suppressStateSync || !model) {
+      return;
+    }
+
+    try {
+      await this.request<ServerSessionSnapshot>(
+        `/api/chat/sessions/${encodeURIComponent(this.sessionId)}/model`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ model }),
+        },
+      );
+    } catch (error) {
+      this.stateModel = previous;
+      console.error("Failed to update chat model on the server:", error);
+    }
+  }
+
+  private async syncThinkingLevel(thinkingLevel: ThinkingLevel) {
+    const previous = this.stateThinkingLevel;
+    this.stateThinkingLevel = thinkingLevel;
+
+    if (this.suppressStateSync) {
+      return;
+    }
+
+    try {
+      await this.request<ServerSessionSnapshot>(
+        `/api/chat/sessions/${encodeURIComponent(this.sessionId)}/thinking`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({ thinkingLevel }),
+        },
+      );
+    } catch (error) {
+      this.stateThinkingLevel = previous;
+      console.error("Failed to update chat thinking level on the server:", error);
+    }
   }
 
   private async request<T>(path: string, init: RequestInit) {
@@ -187,14 +279,31 @@ export class RemoteChatSession {
   }
 
   private applySnapshot(snapshot: ServerSessionSnapshot) {
-    this.sessionId = snapshot.sessionId;
-    this.state.model = snapshot.model;
-    this.state.thinkingLevel = snapshot.thinkingLevel;
-    this.state.messages = [...snapshot.messages];
-    this.state.isStreaming = snapshot.isStreaming;
-    if (!snapshot.isStreaming) {
-      this.state.streamingMessage = undefined;
+    this.suppressStateSync = true;
+    try {
+      this.sessionId = snapshot.sessionId;
+      this.title = snapshot.title;
+      this.stateModel = snapshot.model;
+      this.stateThinkingLevel = snapshot.thinkingLevel;
+      this.state.messages = [...snapshot.messages];
+      this.state.isStreaming = snapshot.isStreaming;
+      if (!snapshot.isStreaming) {
+        this.state.streamingMessage = undefined;
+      }
+    } finally {
+      this.suppressStateSync = false;
     }
+  }
+
+  private snapshot(): ServerSessionSnapshot {
+    return {
+      sessionId: this.sessionId,
+      title: this.title,
+      model: this.stateModel,
+      thinkingLevel: this.stateThinkingLevel,
+      messages: [...this.state.messages],
+      isStreaming: this.state.isStreaming,
+    };
   }
 
   private async emit(event: RemoteSessionEvent) {
