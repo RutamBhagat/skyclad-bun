@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@bogeychan/elysia-logger": "^0.1.10",
+    "@earendil-works/pi-ai": "^0.74.0",
+    "@earendil-works/pi-coding-agent": "^0.74.0",
     "@elysiajs/cors": "^1.4.1",
     "@sinclair/typebox": "^0.34.49",
     "@skyclad-bun/db": "workspace:*",
