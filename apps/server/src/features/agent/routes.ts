@@ -4,6 +4,7 @@ import { Elysia, t } from "elysia";
 
 import {
   abortAgent,
+  assertAllowedModel,
   createAgent,
   getAgent,
   getOrCreateAgent,
@@ -215,7 +216,10 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
 
       const agent = getOrCreateAgent(params.sessionId, persistedState(row));
 
-      if (body.model) agent.state.model = body.model as any;
+      if (body.model) {
+        assertAllowedModel(body.model);
+        agent.state.model = body.model as any;
+      }
       if (body.thinkingLevel) agent.state.thinkingLevel = body.thinkingLevel as any;
       if (typeof body.systemPrompt === "string") {
         agent.state.systemPrompt = body.systemPrompt;

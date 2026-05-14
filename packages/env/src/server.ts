@@ -7,8 +7,6 @@ export const env = createEnv({
     DATABASE_URL: z.string().min(1),
     CORS_ORIGIN: z.url(),
     OLLAMA_BASE_URL: z.url().default("http://localhost:11434"),
-    ANTHROPIC_API_KEY: z.string().optional(),
-    OPENAI_API_KEY: z.string().optional(),
     GOOGLE_API_KEY: z.string().optional(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   },

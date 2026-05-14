@@ -1,7 +1,13 @@
-import { Agent, type AgentEvent, type AgentMessage, type AgentState } from "@earendil-works/pi-agent-core";
+import {
+  Agent,
+  type AgentEvent,
+  type AgentMessage,
+  type AgentState,
+} from "@earendil-works/pi-agent-core";
 import { getModel } from "@earendil-works/pi-ai";
 import { env } from "@skyclad-bun/env/server";
 
+import { getOpenAICodexOAuthApiKey } from "./oauth-auth";
 import { formatServerSkillsPrompt } from "./skills";
 import { defaultServerTools } from "./tools";
 
@@ -9,10 +15,26 @@ const SYSTEM_PROMPT = `You are a helpful AI research assistant for arXiv papers.
 
 ${formatServerSkillsPrompt()}`;
 
-const DEFAULT_MODEL = getModel("anthropic", "claude-sonnet-4-5-20250929");
+const DEFAULT_MODEL = getModel("openai-codex", "gpt-5.4-mini");
 
 if (!DEFAULT_MODEL) {
   throw new Error("Default agent model not found.");
+}
+
+function isAllowedModel(model: unknown) {
+  const provider = (model as { provider?: unknown } | undefined)?.provider;
+  return provider === "openai-codex" || provider === "google";
+}
+
+function sanitizeInitialState(initialState?: Partial<AgentState>) {
+  if (!initialState) return undefined;
+  if (!initialState.model || isAllowedModel(initialState.model))
+    return initialState;
+
+  return {
+    ...initialState,
+    model: DEFAULT_MODEL,
+  };
 }
 
 type Listener = (event: AgentEvent) => void | Promise<void>;
@@ -34,20 +56,21 @@ export function createDefaultAgentState(): Partial<AgentState> {
   };
 }
 
-export function createAgent(sessionId: string, initialState?: Partial<AgentState>) {
+export function createAgent(
+  sessionId: string,
+  initialState?: Partial<AgentState>,
+) {
   const agent = new Agent({
     initialState: {
       ...createDefaultAgentState(),
-      ...initialState,
+      ...sanitizeInitialState(initialState),
       tools: defaultServerTools,
     },
     sessionId,
-    getApiKey(provider: string) {
+    async getApiKey(provider: string) {
       switch (provider) {
-        case "anthropic":
-          return env.ANTHROPIC_API_KEY;
-        case "openai":
-          return env.OPENAI_API_KEY;
+        case "openai-codex":
+          return getOpenAICodexOAuthApiKey();
         case "google":
           return env.GOOGLE_API_KEY;
         default:
@@ -61,7 +84,10 @@ export function createAgent(sessionId: string, initialState?: Partial<AgentState
   return agent;
 }
 
-export function getOrCreateAgent(sessionId: string, state?: Partial<AgentState>) {
+export function getOrCreateAgent(
+  sessionId: string,
+  state?: Partial<AgentState>,
+) {
   return getAgent(sessionId) ?? createAgent(sessionId, state);
 }
 
@@ -71,6 +97,14 @@ export function getAgent(sessionId: string) {
 
 export function abortAgent(sessionId: string) {
   activeAgents.get(sessionId)?.abort();
+}
+
+export function assertAllowedModel(model: unknown) {
+  if (!isAllowedModel(model)) {
+    throw new Error(
+      "Only ChatGPT OAuth and Gemini API-key models are enabled.",
+    );
+  }
 }
 
 export function toPersistableState(agent: Agent): PersistableAgentState {

@@ -5,7 +5,7 @@ import { Input } from "@skyclad-bun/ui/components/input";
 import { Check, Plus, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { ChatPanel } from "@earendil-works/pi-web-ui";
+import { ChatPanel, ModelSelector } from "@earendil-works/pi-web-ui";
 import {
   createSession,
   RemoteChatSession,
@@ -63,12 +63,24 @@ export default function PiChatApp() {
 
     await chatPanel.setAgent(toAgent(sessionRef.current.session), {
       onApiKeyRequired: async () => true,
-      onModelSelect: () => {},
+      onModelSelect: () => {
+        const session = sessionRef.current.session;
+        if (!session) return;
+
+        void ModelSelector.open(
+          session.state.model,
+          (model) => {
+            session.state.model = model;
+            chatPanel.agentInterface?.requestUpdate();
+          },
+          ["openai-codex", "google"],
+        );
+      },
     });
 
     if (chatPanel.agentInterface) {
       chatPanel.agentInterface.enableAttachments = false;
-      chatPanel.agentInterface.enableModelSelector = false;
+      chatPanel.agentInterface.enableModelSelector = true;
       chatPanel.agentInterface.enableThinkingSelector = false;
       chatPanel.agentInterface.requestUpdate();
     }
