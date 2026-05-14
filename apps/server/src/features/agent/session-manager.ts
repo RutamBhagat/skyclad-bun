@@ -2,9 +2,12 @@ import { Agent, type AgentEvent, type AgentMessage, type AgentState } from "@ear
 import { getModel } from "@earendil-works/pi-ai";
 import { env } from "@skyclad-bun/env/server";
 
+import { formatServerSkillsPrompt } from "./skills";
+import { defaultServerTools } from "./tools";
+
 const SYSTEM_PROMPT = `You are a helpful AI research assistant for arXiv papers.
 
-Answer clearly and directly. Retrieval tools will be added server-side in the next migration step.`;
+${formatServerSkillsPrompt()}`;
 
 const DEFAULT_MODEL = getModel("anthropic", "claude-sonnet-4-5-20250929");
 
@@ -27,7 +30,7 @@ export function createDefaultAgentState(): Partial<AgentState> {
     model: DEFAULT_MODEL,
     thinkingLevel: "off",
     messages: [],
-    tools: [],
+    tools: defaultServerTools,
   };
 }
 
@@ -36,7 +39,7 @@ export function createAgent(sessionId: string, initialState?: Partial<AgentState
     initialState: {
       ...createDefaultAgentState(),
       ...initialState,
-      tools: [],
+      tools: defaultServerTools,
     },
     sessionId,
     getApiKey(provider: string) {
