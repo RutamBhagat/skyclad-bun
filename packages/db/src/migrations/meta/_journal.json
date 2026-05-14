@@ -15,6 +15,13 @@
       "when": 1778579067482,
       "tag": "0001_third_shiver_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778787362015,
+      "tag": "0002_lazy_thaddeus_ross",
+      "breakpoints": true
     }
   ]
 }

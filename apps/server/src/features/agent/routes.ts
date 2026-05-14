@@ -1,28 +1,45 @@
+import { db, eq } from "@skyclad-bun/db";
+import { agentSessions } from "@skyclad-bun/db/schema/index";
 import { Elysia, t } from "elysia";
 
 import {
   abortAgent,
   createAgent,
   getAgent,
-  getSessionTitle,
-  setSessionTitle,
+  getOrCreateAgent,
   streamPrompt,
   toPersistableState,
+  type PersistableAgentState,
 } from "./session-manager";
 
 function encodeSse(data: unknown) {
   return new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`);
 }
 
-function snapshot(sessionId: string) {
-  const agent = getAgent(sessionId);
-  if (!agent) return undefined;
+type AgentSessionRow = typeof agentSessions.$inferSelect;
+
+async function findSession(sessionId: string) {
+  const rows = await db
+    .select()
+    .from(agentSessions)
+    .where(eq(agentSessions.id, sessionId))
+    .limit(1);
+
+  return rows[0];
+}
+
+function persistedState(row: AgentSessionRow) {
+  return row.state as PersistableAgentState;
+}
+
+function snapshot(row: AgentSessionRow) {
+  const agent = getAgent(row.id);
 
   return {
-    sessionId,
-    title: getSessionTitle(sessionId),
-    state: toPersistableState(agent),
-    isStreaming: agent.state.isStreaming,
+    sessionId: row.id,
+    title: row.title,
+    state: agent ? toPersistableState(agent) : persistedState(row),
+    isStreaming: agent?.state.isStreaming ?? false,
   };
 }
 
@@ -59,48 +76,70 @@ function shouldSaveSession(messages: Array<{ role?: string }>) {
   return hasUserMessage && hasAssistantMessage;
 }
 
-function updateGeneratedTitle(sessionId: string) {
-  if (getSessionTitle(sessionId)) return;
+async function persistAgentSession(sessionId: string, title: string, state: PersistableAgentState) {
+  const now = new Date();
 
-  const agent = getAgent(sessionId);
-  if (!agent) return;
+  await db
+    .update(agentSessions)
+    .set({
+      title,
+      state,
+      updatedAt: now,
+    })
+    .where(eq(agentSessions.id, sessionId));
 
-  const messages = agent.state.messages as Array<{ role?: string; content?: unknown }>;
-  if (!shouldSaveSession(messages)) return;
+  return findSession(sessionId);
+}
 
-  const title = generateTitle(messages);
-  if (title) setSessionTitle(sessionId, title);
+async function persistPromptResult(row: AgentSessionRow) {
+  const agent = getAgent(row.id);
+  if (!agent) return row;
+
+  const state = toPersistableState(agent);
+  const messages = state.messages as Array<{ role?: string; content?: unknown }>;
+  const title = row.title || (shouldSaveSession(messages) ? generateTitle(messages) : "");
+
+  return (await persistAgentSession(row.id, title, state)) ?? row;
 }
 
 export const agentRoutes = new Elysia({ prefix: "/api/agent" })
-  .post("/sessions", () => {
+  .post("/sessions", async () => {
     const sessionId = crypto.randomUUID();
+    const now = new Date();
     const agent = createAgent(sessionId);
+    const state = toPersistableState(agent);
 
-    return {
-      sessionId,
-      title: getSessionTitle(sessionId),
-      state: toPersistableState(agent),
-      isStreaming: agent.state.isStreaming,
-    };
+    await db.insert(agentSessions).values({
+      id: sessionId,
+      title: "",
+      state,
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    const row = await findSession(sessionId);
+    return snapshot(row!);
   })
-  .get("/sessions/:sessionId", ({ params, set }) => {
-    const currentSnapshot = snapshot(params.sessionId);
-    if (!currentSnapshot) {
+  .get("/sessions/:sessionId", async ({ params, set }) => {
+    const row = await findSession(params.sessionId);
+    if (!row) {
       set.status = 404;
       return { error: "session_not_found" };
     }
 
-    return currentSnapshot;
+    getOrCreateAgent(params.sessionId, persistedState(row));
+    return snapshot(row);
   })
   .post(
     "/sessions/:sessionId/prompt",
-    ({ params, body, set }) => {
-      const agent = getAgent(params.sessionId);
-      if (!agent) {
+    async ({ params, body, set }) => {
+      const row = await findSession(params.sessionId);
+      if (!row) {
         set.status = 404;
         return { error: "session_not_found" };
       }
+
+      const agent = getOrCreateAgent(params.sessionId, persistedState(row));
 
       const stream = new ReadableStream<Uint8Array>({
         async start(controller) {
@@ -109,16 +148,8 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
               controller.enqueue(encodeSse(event));
             });
 
-            updateGeneratedTitle(params.sessionId);
-            controller.enqueue(encodeSse({
-              type: "snapshot",
-              snapshot: {
-                sessionId: params.sessionId,
-                title: getSessionTitle(params.sessionId),
-                state: toPersistableState(agent),
-                isStreaming: agent.state.isStreaming,
-              },
-            }));
+            const savedRow = await persistPromptResult(row);
+            controller.enqueue(encodeSse({ type: "snapshot", snapshot: snapshot(savedRow) }));
             controller.enqueue(encodeSse({ type: "done" }));
           } catch (error) {
             controller.enqueue(
@@ -145,8 +176,9 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
       }),
     },
   )
-  .post("/sessions/:sessionId/abort", ({ params, set }) => {
-    if (!getAgent(params.sessionId)) {
+  .post("/sessions/:sessionId/abort", async ({ params, set }) => {
+    const row = await findSession(params.sessionId);
+    if (!row) {
       set.status = 404;
       return { error: "session_not_found" };
     }
@@ -156,13 +188,15 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
   })
   .patch(
     "/sessions/:sessionId/title",
-    ({ params, body, set }) => {
-      if (!setSessionTitle(params.sessionId, body.title)) {
+    async ({ params, body, set }) => {
+      const row = await findSession(params.sessionId);
+      if (!row) {
         set.status = 404;
         return { error: "session_not_found" };
       }
 
-      return snapshot(params.sessionId)!;
+      const savedRow = await persistAgentSession(params.sessionId, body.title.trim(), persistedState(row));
+      return snapshot(savedRow!);
     },
     {
       body: t.Object({
@@ -172,12 +206,14 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
   )
   .patch(
     "/sessions/:sessionId/state",
-    ({ params, body, set }) => {
-      const agent = getAgent(params.sessionId);
-      if (!agent) {
+    async ({ params, body, set }) => {
+      const row = await findSession(params.sessionId);
+      if (!row) {
         set.status = 404;
         return { error: "session_not_found" };
       }
+
+      const agent = getOrCreateAgent(params.sessionId, persistedState(row));
 
       if (body.model) agent.state.model = body.model as any;
       if (body.thinkingLevel) agent.state.thinkingLevel = body.thinkingLevel as any;
@@ -185,12 +221,15 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
         agent.state.systemPrompt = body.systemPrompt;
       }
 
+      const savedRow = await persistAgentSession(
+        params.sessionId,
+        row.title,
+        toPersistableState(agent),
+      );
+
       return {
         ok: true,
-        sessionId: params.sessionId,
-        title: getSessionTitle(params.sessionId),
-        state: toPersistableState(agent),
-        isStreaming: agent.state.isStreaming,
+        ...snapshot(savedRow!),
       };
     },
     {

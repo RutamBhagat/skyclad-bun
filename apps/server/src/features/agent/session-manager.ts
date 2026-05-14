@@ -19,12 +19,7 @@ export type PersistableAgentState = Pick<
   "systemPrompt" | "model" | "thinkingLevel" | "messages"
 >;
 
-type AgentSessionRecord = {
-  agent: Agent;
-  title: string;
-};
-
-const activeSessions = new Map<string, AgentSessionRecord>();
+const activeAgents = new Map<string, Agent>();
 
 export function createDefaultAgentState(): Partial<AgentState> {
   return {
@@ -59,7 +54,7 @@ export function createAgent(sessionId: string, initialState?: Partial<AgentState
     toolExecution: "parallel",
   });
 
-  activeSessions.set(sessionId, { agent, title: "" });
+  activeAgents.set(sessionId, agent);
   return agent;
 }
 
@@ -68,23 +63,11 @@ export function getOrCreateAgent(sessionId: string, state?: Partial<AgentState>)
 }
 
 export function getAgent(sessionId: string) {
-  return activeSessions.get(sessionId)?.agent;
-}
-
-export function getSessionTitle(sessionId: string) {
-  return activeSessions.get(sessionId)?.title ?? "";
-}
-
-export function setSessionTitle(sessionId: string, title: string) {
-  const record = activeSessions.get(sessionId);
-  if (!record) return false;
-
-  record.title = title.trim();
-  return true;
+  return activeAgents.get(sessionId);
 }
 
 export function abortAgent(sessionId: string) {
-  activeSessions.get(sessionId)?.agent.abort();
+  activeAgents.get(sessionId)?.abort();
 }
 
 export function toPersistableState(agent: Agent): PersistableAgentState {

@@ -66,3 +66,18 @@ export const ingestionJobs = pgTable("ingestion_jobs", {
   startedAt: timestamp("started_at").notNull(),
   completedAt: timestamp("completed_at"),
 });
+
+export const agentSessions = pgTable("agent_sessions", {
+  id: text("id").primaryKey(),
+  title: text("title").notNull().default(""),
+  state: jsonb("state")
+    .$type<{
+      systemPrompt: string;
+      model: unknown;
+      thinkingLevel: string;
+      messages: unknown[];
+    }>()
+    .notNull(),
+  createdAt: timestamp("created_at").notNull(),
+  updatedAt: timestamp("updated_at").notNull(),
+});
