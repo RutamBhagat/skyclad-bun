@@ -33,7 +33,7 @@ export const Route = createRootRouteWithContext<RouterAppContext>()({
 
 function RootDocument() {
   return (
-    <html lang="en" className="h-full overflow-hidden dark">
+    <html lang="en" className="h-full overflow-hidden">
       <head>
         <HeadContent />
       </head>
