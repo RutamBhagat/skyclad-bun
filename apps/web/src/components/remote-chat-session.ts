@@ -13,6 +13,10 @@ export type ServerSessionSnapshot = {
   title: string;
   state: Pick<AgentState, "systemPrompt" | "model" | "thinkingLevel" | "messages">;
   isStreaming: boolean;
+  usage: {
+    cost: number;
+    usingSubscription: boolean;
+  };
 };
 
 export type ServerSessionListItem = {
@@ -24,6 +28,7 @@ export type ServerSessionListItem = {
 
 export class RemoteChatSession {
   public state: AgentState;
+  public usage: ServerSessionSnapshot["usage"];
   public streamFn?: unknown;
   public getApiKey?: unknown;
 
@@ -38,6 +43,7 @@ export class RemoteChatSession {
     snapshot: ServerSessionSnapshot,
   ) {
     this.title = snapshot.title;
+    this.usage = snapshot.usage;
     this.state = {
       systemPrompt: snapshot.state.systemPrompt,
       model: snapshot.state.model,
@@ -280,6 +286,7 @@ export class RemoteChatSession {
       this.state.model = snapshot.state.model;
       this.state.thinkingLevel = snapshot.state.thinkingLevel;
       this.state.messages = [...snapshot.state.messages];
+      this.usage = snapshot.usage;
       this.patchReadonlyState({
         isStreaming: snapshot.isStreaming,
         streamingMessage: snapshot.isStreaming ? this.state.streamingMessage : undefined,

@@ -20,6 +20,11 @@ function encodeSse(data: unknown) {
 
 type AgentSessionRow = typeof agentSessions.$inferSelect;
 
+type SessionUsageView = {
+  cost: number;
+  usingSubscription: boolean;
+};
+
 async function findSession(sessionId: string) {
   const rows = await db
     .select()
@@ -34,14 +39,31 @@ function persistedState(row: AgentSessionRow) {
   return row.state as PersistableAgentState;
 }
 
+function sessionUsage(state: PersistableAgentState): SessionUsageView {
+  let cost = 0;
+
+  for (const message of state.messages) {
+    if (message.role === "assistant") {
+      cost += message.usage.cost.total;
+    }
+  }
+
+  return {
+    cost,
+    usingSubscription: state.model?.provider === "openai-codex",
+  };
+}
+
 function snapshot(row: AgentSessionRow) {
   const agent = getAgent(row.id);
+  const state = agent ? toPersistableState(agent) : persistedState(row);
 
   return {
     sessionId: row.id,
     title: row.title,
-    state: agent ? toPersistableState(agent) : persistedState(row),
+    state,
     isStreaming: agent?.state.isStreaming ?? false,
+    usage: sessionUsage(state),
   };
 }
 

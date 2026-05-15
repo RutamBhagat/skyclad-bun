@@ -1,6 +1,8 @@
 import "@tanstack/react-start/client-only";
 
 import { getModels } from "@earendil-works/pi-ai";
+import "@mariozechner/mini-lit/dist/CodeBlock.js";
+import "@mariozechner/mini-lit/dist/MarkdownBlock.js";
 import { Button } from "@skyclad-bun/ui/components/button";
 import { Input } from "@skyclad-bun/ui/components/input";
 import {
@@ -13,6 +15,7 @@ import {
 import { Textarea } from "@skyclad-bun/ui/components/textarea";
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
 import { Check, MessageSquare, Plus, Send, Square, Trash2, Wrench, X } from "lucide-react";
+import type { DetailedHTMLProps, HTMLAttributes } from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -29,6 +32,14 @@ const selectableModels = [
   ...getModels("openai-codex"),
   ...getModels("google"),
 ];
+
+declare module "react" {
+  namespace JSX {
+    interface IntrinsicElements {
+      "markdown-block": DetailedHTMLProps<HTMLAttributes<HTMLElement>, HTMLElement>;
+    }
+  }
+}
 
 function messageText(message: AgentMessage) {
   const content = (message as { content?: unknown }).content;
@@ -125,6 +136,17 @@ function buildToolResultsById(messages: AgentMessage[]) {
   return results;
 }
 
+function MarkdownText({ content }: { content: string }) {
+  const ref = useRef<HTMLElement | null>(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    (ref.current as HTMLElement & { content: string }).content = content;
+  }, [content]);
+
+  return <markdown-block ref={ref} />;
+}
+
 function ToolCallPanel({
   toolCall,
   result,
@@ -183,8 +205,8 @@ function AssistantMessageView({
 
     return (
       <div className="flex justify-start">
-        <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-muted px-4 py-2">
-          {text}
+        <div className="max-w-[80%] rounded-lg bg-muted px-4 py-2">
+          <MarkdownText content={text} />
         </div>
       </div>
     );
@@ -199,8 +221,8 @@ function AssistantMessageView({
 
           return (
             <div key={`text-${blockIndex}`} className="flex justify-start">
-              <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-muted px-4 py-2">
-                {text}
+              <div className="max-w-[80%] rounded-lg bg-muted px-4 py-2">
+                <MarkdownText content={text} />
               </div>
             </div>
           );
@@ -505,6 +527,9 @@ export default function PiChatApp() {
   const toolResultsById = buildToolResultsById(messages);
   const pendingToolCalls = session?.state.pendingToolCalls ?? new Set<string>();
   const isStreaming = Boolean(session?.state.isStreaming);
+  const costText = session
+    ? `$${session.usage.cost.toFixed(3)}${session.usage.usingSubscription ? " (sub)" : ""}`
+    : "$0.000";
 
   return (
     <div className="flex h-svh w-full flex-col overflow-hidden bg-background text-foreground">
@@ -616,8 +641,11 @@ export default function PiChatApp() {
                       }
                     }}
                   />
-                  <div className="flex min-w-0 flex-1 flex-col gap-2">
-                    <div className="ml-auto flex items-center gap-2">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="min-w-0 flex-1 px-1 text-xs text-muted-foreground">
+                      {costText}
+                    </div>
+                    <div className="flex min-w-0 items-center gap-2">
                       <Select
                         value={session?.state.model ? `${session.state.model.provider}/${session.state.model.id}` : null}
                         disabled={!session || isStreaming}
@@ -625,7 +653,7 @@ export default function PiChatApp() {
                           if (typeof value === "string") selectModel(value);
                         }}
                       >
-                        <SelectTrigger className="h-9 w-64 border-transparent bg-muted/60 px-2.5 text-muted-foreground hover:bg-muted">
+                        <SelectTrigger className="h-9 w-40 border-transparent bg-muted/60 px-2.5 text-muted-foreground hover:bg-muted sm:w-64">
                           <SelectValue placeholder="Select model" />
                         </SelectTrigger>
                         <SelectContent

@@ -1,4 +1,6 @@
 import type { AgentTool } from "@earendil-works/pi-agent-core";
+import nerdamer from "nerdamer";
+import "nerdamer/Algebra";
 import { Type } from "typebox";
 
 import { queryPaperDocsMarkdown, resolvePaperIdMarkdown } from "../retrieval/service";
@@ -24,6 +26,17 @@ const queryPaperDocsParameters = Type.Object({
       "Agent-formed PostgreSQL websearch lexical query. Use exact terms, quoted phrases, symbols, formula tokens, acronyms, dataset/metric names, section titles, table/figure labels, and OR-expanded variants such as `recurrent OR convolutional OR RNN OR CNN`.",
   }),
 });
+
+const calculateParameters = Type.Object({
+  expression: Type.String({
+    description:
+      "Mathematical expression to evaluate, simplify, or expand.",
+  }),
+});
+
+function calculateExpression(expression: string) {
+  return nerdamer(expression).evaluate().text();
+}
 
 export const resolvePaperIdTool: AgentTool<typeof resolvePaperIdParameters> = {
   name: "resolve_paper_id",
@@ -68,4 +81,22 @@ export const queryPaperDocsTool: AgentTool<typeof queryPaperDocsParameters> = {
   },
 };
 
-export const defaultServerTools = [resolvePaperIdTool, queryPaperDocsTool];
+export const calculateTool: AgentTool<typeof calculateParameters> = {
+  name: "calculate",
+  label: "Calculator",
+  description:
+    "Evaluate numeric expressions and simplify or expand symbolic expressions.",
+  parameters: calculateParameters,
+  execute: async (_toolCallId, params, signal) => {
+    if (signal?.aborted) throw new Error("Aborted");
+
+    const result = calculateExpression(params.expression);
+
+    return {
+      content: [{ type: "text", text: `${params.expression} = ${result}` }],
+      details: { expression: params.expression, result },
+    };
+  },
+};
+
+export const defaultServerTools = [resolvePaperIdTool, queryPaperDocsTool, calculateTool];
