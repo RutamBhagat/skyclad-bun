@@ -1,160 +1,79 @@
-import { db, desc, eq } from "@skyclad-bun/db";
-import { agentSessions } from "@skyclad-bun/db/schema/index";
 import { Elysia, t } from "elysia";
 
+import { agentEvalCases, runAgentEvalCase } from "./agent-evals";
+import { encodeSse } from "./route-responses";
 import {
   abortAgent,
   assertAllowedModel,
   createAgent,
   deleteAgent,
-  getAgent,
   getOrCreateAgent,
   streamPrompt,
   toPersistableState,
-  type PersistableAgentState,
 } from "./session-manager";
-
-function encodeSse(data: unknown) {
-  return new TextEncoder().encode(`data: ${JSON.stringify(data)}\n\n`);
-}
-
-type AgentSessionRow = typeof agentSessions.$inferSelect;
-
-type SessionUsageView = {
-  cost: number;
-  usingSubscription: boolean;
-};
-
-async function findSession(sessionId: string) {
-  const rows = await db
-    .select()
-    .from(agentSessions)
-    .where(eq(agentSessions.id, sessionId))
-    .limit(1);
-
-  return rows[0];
-}
-
-function persistedState(row: AgentSessionRow) {
-  return row.state as PersistableAgentState;
-}
-
-function sessionUsage(state: PersistableAgentState): SessionUsageView {
-  let cost = 0;
-
-  for (const message of state.messages) {
-    if (message.role === "assistant") {
-      cost += message.usage.cost.total;
-    }
-  }
-
-  return {
-    cost,
-    usingSubscription: state.model?.provider === "openai-codex",
-  };
-}
-
-function snapshot(row: AgentSessionRow) {
-  const agent = getAgent(row.id);
-  const state = agent ? toPersistableState(agent) : persistedState(row);
-
-  return {
-    sessionId: row.id,
-    title: row.title,
-    state,
-    isStreaming: agent?.state.isStreaming ?? false,
-    usage: sessionUsage(state),
-  };
-}
-
-function generateTitle(messages: Array<{ role?: string; content?: unknown }>) {
-  const firstUserMessage = messages.find((message) => message.role === "user");
-  if (!firstUserMessage) return "";
-
-  const content = firstUserMessage.content;
-  const text =
-    typeof content === "string"
-      ? content
-      : Array.isArray(content)
-        ? content
-            .filter((item): item is { type: "text"; text?: string } => item.type === "text")
-            .map((item) => item.text || "")
-            .join(" ")
-        : "";
-
-  const trimmed = text.trim();
-  if (!trimmed) return "";
-
-  const sentenceEnd = trimmed.search(/[.!?]/);
-  if (sentenceEnd > 0 && sentenceEnd <= 50) {
-    return trimmed.substring(0, sentenceEnd + 1);
-  }
-
-  return trimmed.length <= 50 ? trimmed : `${trimmed.substring(0, 47)}...`;
-}
-
-function shouldSaveSession(messages: Array<{ role?: string }>) {
-  const hasUserMessage = messages.some((message) => message.role === "user");
-  const hasAssistantMessage = messages.some((message) => message.role === "assistant");
-
-  return hasUserMessage && hasAssistantMessage;
-}
-
-async function persistAgentSession(sessionId: string, title: string, state: PersistableAgentState) {
-  const now = new Date();
-
-  await db
-    .update(agentSessions)
-    .set({
-      title,
-      state,
-      updatedAt: now,
-    })
-    .where(eq(agentSessions.id, sessionId));
-
-  return findSession(sessionId);
-}
-
-async function persistPromptResult(row: AgentSessionRow) {
-  const agent = getAgent(row.id);
-  if (!agent) return row;
-
-  const state = toPersistableState(agent);
-  const messages = state.messages as Array<{ role?: string; content?: unknown }>;
-  const title = row.title || (shouldSaveSession(messages) ? generateTitle(messages) : "");
-
-  return (await persistAgentSession(row.id, title, state)) ?? row;
-}
+import {
+  createSession,
+  deleteSession,
+  findSession,
+  listSessionSummaries,
+  persistedState,
+  persistAgentSession,
+  persistPromptResult,
+  snapshot,
+} from "./session-persistence";
 
 export const agentRoutes = new Elysia({ prefix: "/api/agent" })
-  .get("/sessions", async () => {
-    const rows = await db
-      .select({
-        sessionId: agentSessions.id,
-        title: agentSessions.title,
-        createdAt: agentSessions.createdAt,
-        updatedAt: agentSessions.updatedAt,
-      })
-      .from(agentSessions)
-      .orderBy(desc(agentSessions.updatedAt));
+  .get("/evals", async () => {
+    return { cases: agentEvalCases };
+  })
+  .post(
+    "/evals/run",
+    async ({ body, set }) => {
+      const requestedCaseIds = body.caseIds ?? agentEvalCases.map((evalCase) => evalCase.id);
+      const availableCaseIds = new Set(agentEvalCases.map((evalCase) => evalCase.id));
+      const unknownCaseIds = requestedCaseIds.filter((caseId) => !availableCaseIds.has(caseId));
 
-    return { sessions: rows };
+      if (unknownCaseIds.length > 0) {
+        set.status = 400;
+        return {
+          error: "unknown_eval_case",
+          unknownCaseIds,
+          availableCaseIds: [...availableCaseIds],
+        };
+      }
+
+      const selectedCases = agentEvalCases.filter((evalCase) => requestedCaseIds.includes(evalCase.id));
+      const results = [];
+
+      for (const evalCase of selectedCases) {
+        results.push(await runAgentEvalCase(evalCase, body.includeEvents ?? false));
+      }
+
+      const passed = results.filter((result) => result.passed).length;
+
+      return {
+        total: results.length,
+        passed,
+        failed: results.length - passed,
+        score: results.length === 0 ? 0 : passed / results.length,
+        results,
+      };
+    },
+    {
+      body: t.Object({
+        caseIds: t.Optional(t.Array(t.String())),
+        includeEvents: t.Optional(t.Boolean()),
+      }),
+    },
+  )
+  .get("/sessions", async () => {
+    return { sessions: await listSessionSummaries() };
   })
   .post("/sessions", async () => {
     const sessionId = crypto.randomUUID();
-    const now = new Date();
     const agent = createAgent(sessionId);
     const state = toPersistableState(agent);
-
-    await db.insert(agentSessions).values({
-      id: sessionId,
-      title: "",
-      state,
-      createdAt: now,
-      updatedAt: now,
-    });
-
-    const row = await findSession(sessionId);
+    const row = await createSession(sessionId, state);
     return snapshot(row!);
   })
   .get("/sessions/:sessionId", async ({ params, set }) => {
@@ -231,7 +150,7 @@ export const agentRoutes = new Elysia({ prefix: "/api/agent" })
     }
 
     deleteAgent(params.sessionId);
-    await db.delete(agentSessions).where(eq(agentSessions.id, params.sessionId));
+    await deleteSession(params.sessionId);
 
     return { ok: true };
   })
