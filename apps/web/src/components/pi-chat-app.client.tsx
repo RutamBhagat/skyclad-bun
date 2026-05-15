@@ -12,7 +12,7 @@ import {
 } from "@skyclad-bun/ui/components/select";
 import { Textarea } from "@skyclad-bun/ui/components/textarea";
 import type { AgentMessage } from "@earendil-works/pi-agent-core";
-import { Check, MessageSquare, Plus, Send, Square, Trash2, X } from "lucide-react";
+import { Check, MessageSquare, Plus, Send, Square, Trash2, Wrench, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import {
@@ -48,22 +48,176 @@ function messageText(message: AgentMessage) {
   return "";
 }
 
-function assistantText(message: AgentMessage) {
-  const content = (message as { content?: unknown }).content;
-  if (!Array.isArray(content)) return messageText(message);
+type ToolCallBlock = {
+  type: "toolCall";
+  id: string;
+  name?: string;
+  arguments?: unknown;
+};
 
-  return content
-    .filter((item): item is { type: string; text?: string; thinking?: string; name?: string } => {
-      return typeof item === "object" && item !== null && "type" in item;
-    })
-    .map((item) => {
-      if (item.type === "text") return item.text || "";
-      if (item.type === "thinking") return item.thinking || "";
-      if (item.type === "toolCall") return `[Tool call: ${item.name || "tool"}]`;
-      return "";
-    })
-    .filter(Boolean)
-    .join("\n\n");
+type TextBlock = {
+  type: "text";
+  text?: string;
+};
+
+type ThinkingBlock = {
+  type: "thinking";
+  thinking?: string;
+};
+
+type AssistantContentBlock = TextBlock | ThinkingBlock | ToolCallBlock;
+
+type ToolResultMessage = AgentMessage & {
+  role: "toolResult";
+  toolCallId: string;
+  toolName?: string;
+  content?: unknown;
+  isError?: boolean;
+};
+
+function messageContentBlocks(message: AgentMessage) {
+  const content = (message as { content?: unknown }).content;
+  if (!Array.isArray(content)) return [];
+
+  return content.filter((item): item is AssistantContentBlock => {
+    if (typeof item !== "object" || item === null || !("type" in item)) {
+      return false;
+    }
+
+    const type = (item as { type?: unknown }).type;
+    return type === "text" || type === "thinking" || type === "toolCall";
+  });
+}
+
+function toolResultText(result?: ToolResultMessage) {
+  if (!result) return "";
+  return messageText(result);
+}
+
+function formatJson(value: unknown) {
+  if (value === undefined) return "";
+
+  if (typeof value === "string") {
+    try {
+      return JSON.stringify(JSON.parse(value), null, 2);
+    } catch {
+      return value;
+    }
+  }
+
+  try {
+    return JSON.stringify(value, null, 2);
+  } catch {
+    return String(value);
+  }
+}
+
+function buildToolResultsById(messages: AgentMessage[]) {
+  const results = new Map<string, ToolResultMessage>();
+
+  for (const message of messages) {
+    if ((message as { role?: string }).role === "toolResult") {
+      const result = message as ToolResultMessage;
+      results.set(result.toolCallId, result);
+    }
+  }
+
+  return results;
+}
+
+function ToolCallPanel({
+  toolCall,
+  result,
+  pending,
+}: {
+  toolCall: ToolCallBlock;
+  result?: ToolResultMessage;
+  pending: boolean;
+}) {
+  const toolName = toolCall.name || result?.toolName || "tool";
+  const output = toolResultText(result);
+  const args = formatJson(toolCall.arguments);
+
+  return (
+    <div className="max-w-[80%] rounded-md border border-border bg-card p-3 text-card-foreground shadow-sm">
+      <div className="flex items-center gap-2 text-sm font-medium">
+        <Wrench className="size-4 text-muted-foreground" />
+        <span>{toolName}</span>
+        <span className="ml-auto text-xs text-muted-foreground">
+          {pending ? "Running" : result?.isError ? "Failed" : result ? "Done" : "Queued"}
+        </span>
+      </div>
+      {args ? (
+        <div className="mt-3">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Input</div>
+          <pre className="max-h-56 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">
+            {args}
+          </pre>
+        </div>
+      ) : null}
+      {result ? (
+        <div className="mt-3">
+          <div className="mb-1 text-xs font-medium text-muted-foreground">Result</div>
+          <pre className="max-h-80 overflow-auto whitespace-pre-wrap rounded bg-muted p-2 text-xs">
+            {output || "(no output)"}
+          </pre>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function AssistantMessageView({
+  message,
+  toolResultsById,
+  pendingToolCalls,
+}: {
+  message: AgentMessage;
+  toolResultsById: Map<string, ToolResultMessage>;
+  pendingToolCalls: ReadonlySet<string>;
+}) {
+  const blocks = messageContentBlocks(message);
+  if (!blocks.length) {
+    const text = messageText(message);
+    if (!text.trim()) return null;
+
+    return (
+      <div className="flex justify-start">
+        <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-muted px-4 py-2">
+          {text}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {blocks.map((block, blockIndex) => {
+        if (block.type === "text" || block.type === "thinking") {
+          const text = block.type === "text" ? block.text : block.thinking;
+          if (!text?.trim()) return null;
+
+          return (
+            <div key={`text-${blockIndex}`} className="flex justify-start">
+              <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-muted px-4 py-2">
+                {text}
+              </div>
+            </div>
+          );
+        }
+
+        return (
+          <div key={block.id || `tool-${blockIndex}`} className="flex justify-start">
+            <ToolCallPanel
+              toolCall={block}
+              result={toolResultsById.get(block.id)}
+              pending={pendingToolCalls.has(block.id)}
+            />
+          </div>
+        );
+      })}
+    </>
+  );
 }
 
 function updateUrl(sessionId: string) {
@@ -348,9 +502,8 @@ export default function PiChatApp() {
 
   const session = sessionRef.current.session;
   const messages = session?.state.messages ?? [];
-  const streamingText = session?.state.streamingMessage
-    ? assistantText(session.state.streamingMessage)
-    : "";
+  const toolResultsById = buildToolResultsById(messages);
+  const pendingToolCalls = session?.state.pendingToolCalls ?? new Set<string>();
   const isStreaming = Boolean(session?.state.isStreaming);
 
   return (
@@ -389,9 +542,21 @@ export default function PiChatApp() {
                 {messages.length ? (
                   messages.map((message, index) => {
                     const role = (message as { role?: string }).role || "message";
-                    const text = role === "assistant" ? assistantText(message) : messageText(message);
 
-                    if (!text.trim() && role === "toolResult") return null;
+                    if (role === "toolResult") return null;
+
+                    if (role === "assistant") {
+                      return (
+                        <AssistantMessageView
+                          key={`${role}-${index}`}
+                          message={message}
+                          toolResultsById={toolResultsById}
+                          pendingToolCalls={pendingToolCalls}
+                        />
+                      );
+                    }
+
+                    const text = messageText(message);
 
                     return (
                       <div
@@ -419,12 +584,12 @@ export default function PiChatApp() {
                     Start a new research chat.
                   </div>
                 )}
-                {streamingText ? (
-                  <div className="flex justify-start">
-                    <div className="max-w-[80%] whitespace-pre-wrap rounded-lg bg-muted px-4 py-2">
-                      {streamingText}
-                    </div>
-                  </div>
+                {session?.state.streamingMessage ? (
+                  <AssistantMessageView
+                    message={session.state.streamingMessage}
+                    toolResultsById={toolResultsById}
+                    pendingToolCalls={pendingToolCalls}
+                  />
                 ) : null}
                 {errorMessage || session?.state.errorMessage ? (
                   <div className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive">
